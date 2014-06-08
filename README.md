@@ -36,6 +36,11 @@ resource.on('value', function (data) {
 
 What this will do is make a GET request to the specified resource URI to retrieve its value and to discover if the resource supports live updates (indicated via HTTP response headers). The `value` callback will be triggered once the initial value has been received. If the resource supports live updates, then the LiveResource library will begin listening for updates in the background and trigger the `value` callback again whenever the resource changes. If the resource does not support live updates, then `value` will be emitted only once.
 
+LiveResource uses WebSockets and HTTP long-polling to receive updates in realtime. It differs from other realtime solutions by providing an interface modeled around synchronization rather than messaging or sockets. LiveResource is designed first and foremost as an open protocol (see `protocol.md`), to enable the possibility of many compatible client and server implementations. There is no official LiveResource server. Rather, any server application can be modified to speak the LiveResource protocol in order to be compatible with clients.
+
+Server
+------
+
 Supporting live updates on the server is designed to be easy. If you're using Node.js and Express, you can use the `express-liveresource` package. Otherwise, see the `protocol.md` file for details.
 
 For example, to enable live updates of an object resource using `express-liveresource`, make sure the resource supports ETags:
