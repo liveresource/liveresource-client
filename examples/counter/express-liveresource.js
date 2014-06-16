@@ -14,6 +14,22 @@ var ExpressLiveResource = function (app) {
     this._app.use(function (req, res, next) { self.middleware(req, res, next); });
 };
 
+ExpressLiveResource.prototype._addLink = function (res, uri, rel) {
+    var link = '<' + uri + '>; rel=' + rel;
+    var origLink = res.get('Link');
+    if (origLink) {
+        res.set('Link', origLink + ', ' + link);
+    } else {
+        res.set('Link', link);
+    }
+};
+
+ExpressLiveResource.prototype._addLinks = function (res, uri, host, secure) {
+    this._addLink(res, uri, 'value-wait');
+    var wsScheme = (secure ? 'wss' : 'ws');
+    this._addLink(res, wsScheme + '://' + host + '/updates/', 'multiplex-ws');
+};
+
 ExpressLiveResource.prototype._canonicalUri = function (uri) {
     var parsed = url.parse(uri, false, true);
     return parsed.path;
@@ -73,7 +89,7 @@ ExpressLiveResource.prototype.middleware = function (req, res, next) {
         this._internalRequest('GET', req.url, headers, function (code, headers, body) {
             if (code == 304) {
                 console.log('waiting: ' + wait);
-                var l = {res: res, uris: [req.url]};
+                var l = {res: res, uris: [req.url], host: req.get('Host'), secure: req.secure};
                 self._listeners.push(l);
                 req.on('close', function () {
                     console.log('client disconnected');
@@ -87,29 +103,15 @@ ExpressLiveResource.prototype.middleware = function (req, res, next) {
                     for (var i in headers) {
                         res.set(i, headers[i]);
                     }
-                    var link = '<' + req.url + '>; rel=value-wait';
-                    var origLink = res.get('Link');
-                    if (origLink) {
-                        res.set('Link', origLink + ', ' + link);
-                    } else {
-                        res.set('Link', link);
-                    }
-                    // TODO: send body
-                    res.send(304);
+                    self._addLinks(res, req.url, req.get('Host'), req.secure);
+                    res.status(304).send(body);
                 }, wait * 1000);
             } else {
                 for (var i in headers) {
                     res.set(i, headers[i]);
                 }
-                var link = '<' + req.url + '>; rel=value-wait';
-                var origLink = res.get('Link');
-                if (origLink) {
-                    res.set('Link', origLink + ', ' + link);
-                } else {
-                    res.set('Link', link);
-                }
-                // TODO: set status code
-                res.send(body);
+                self._addLinks(res, req.url, req.get('Host'), req.secure);
+                res.status(code).send(body);
             }
         });
         return;
@@ -119,13 +121,7 @@ ExpressLiveResource.prototype.middleware = function (req, res, next) {
     res.writeHead = function (code, headers) {
         var etag = res.get('ETag');
         if (etag) {
-            var link = '<' + req.url + '>; rel=value-wait';
-            var origLink = res.get('Link');
-            if (origLink) {
-                res.set('Link', origLink + ', ' + link);
-            } else {
-                res.set('Link', link);
-            }
+            self._addLinks(res, req.url, req.get('Host'), req.secure);
         }
         writeHead.call(this, code, headers);
     };
@@ -163,13 +159,7 @@ ExpressLiveResource.prototype.updated = function (uri) {
                         for (var i in headers) {
                             l.res.set(i, headers[i]);
                         }
-                        var link = '<' + uri + '>; rel=value-wait';
-                        var origLink = l.res.get('Link');
-                        if (origLink) {
-                            l.res.set('Link', origLink + ', ' + link);
-                        } else {
-                            l.res.set('Link', link);
-                        }
+                        self._addLinks(l.res, uri, l.host, l.secure);
                         l.res.status(200).json(value);
                     //}
                 } else if (l.ws) {
@@ -198,7 +188,7 @@ ExpressLiveResource.prototype.listenWebSocket = function (server) {
 
     wss.on('connection', function (ws) {
         console.log('ws connection opened');
-        var l = {ws: ws, uris: []};
+        var l = {ws: ws, uris: [], host: ws.host, secure: false};
         ws.on('close', function () {
             console.log('ws client disconnected');
             var i = self._listeners.indexOf(l);
