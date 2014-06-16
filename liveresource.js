@@ -567,7 +567,7 @@
                         var requestUri = poll.uri;
                         debug.info("Value Wait Request URI: " + requestUri);
                         poll.polling = true;
-                        poll.request.start('GET', requestUri, { 'If-None-Match': poll.res.etag, 'Wait': 60 });
+                        poll.request.start('GET', requestUri, { 'If-None-Match': poll.res.etag, 'Wait': 55 });
                     }
                 }, this);
 
@@ -647,7 +647,7 @@
 
                         debug.info("Multiplex Wait Request URI: " + requestUri);
                         poll.polling = true;
-                        poll.request.start('GET', requestUri, { 'Wait': 60 });
+                        poll.request.start('GET', requestUri, { 'Wait': 55 });
                     }
                 }, this);
 
@@ -703,7 +703,7 @@
                         var requestUri = poll.uri;
                         debug.info("Changes Wait Request URI: " + requestUri);
                         poll.polling = true;
-                        poll.request.start('GET', requestUri, { 'Wait': 60 });
+                        poll.request.start('GET', requestUri, { 'Wait': 55 });
                     }
                 }, this);
 
