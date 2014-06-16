@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <script src="jquery-1.11.0.min.js"></script>
+    <script src="json2.js"></script>
+    <script src="pollymer-1.1.1.js"></script>
+    <script src="liveresource.js"></script>
+
+    <script type="text/javascript">
+      $(function() {
+        var counter = new LiveResource('/counter/1/');
+        counter.on('value', function(value) {
+          $('#counter-value').text(value);
+        });
+      });
+
+      var addHit = function() {
+        $('#add-button').attr('disabled', 'true');
+        $('#add-button').text('Adding...');
+        $.post('/counter/1/', function(data) {
+          $('#add-button').text('Add');
+          $('#add-button').removeAttr('disabled');
+        });
+      };
+    </script>
+  </head>
+
+  <body>
+    <p>Counter: <span id="counter-value"></span></p>
+    <p><button id="add-button" type="button" onclick="addHit();">Add</button></p>
+  </body>
+</html>

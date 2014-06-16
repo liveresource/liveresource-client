@@ -1,0 +1,11 @@
+{
+  "name": "counter",
+  "description": "liveresource test app",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "4.x",
+    "ws": "0.4.x",
+    "node-mocks-http": "1.0.x"
+  }
+}
