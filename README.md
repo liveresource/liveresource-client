@@ -46,8 +46,8 @@ Supporting live updates on the server is designed to be easy. If you're using No
 For example, to enable live updates of an object resource, make sure the resource supports ETags:
 
 ```javascript
-var LiveResource = require('express-liveresource');
-var liveresource = LiveResource(app);
+var ExpressLiveResource = require('express-liveresource').ExpressLiveResource;
+var liveresource = new ExpressLiveResource(app);
 
 app.get('/path/to/object', function (req, res) {
     var value = ... object value ...
@@ -58,7 +58,7 @@ app.get('/path/to/object', function (req, res) {
     if (inm == etag) {
         res.send(304);
     } else {
-        res.json(value);
+        res.status(200).json(value);
     }
 });
 ```
