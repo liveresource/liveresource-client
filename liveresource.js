@@ -613,14 +613,22 @@
                         var requestUri = ctx.request.uri;
                         debug.info("Multiplex Ws Request URI: " + requestUri);
 
-                        ctx.request.socket.request({
-                            type: 'subscribe',
-                            mode: 'value',
-                            uri: requestUri
-                        }, function (result) {
-                            if (result.type == 'subscribed') {
-                                console.log(result);
-                            }
+                        ctx.request.socket.on("opened", function() {
+
+                            ctx.request.socket.on("message", function(data) {
+                                console.log(data);
+                            });
+
+                            ctx.request.socket.request({
+                                type: 'subscribe',
+                                mode: 'value',
+                                uri: requestUri
+                            }, function (result) {
+                                if (result.type == 'subscribed') {
+                                    console.log(result);
+                                }
+                            });
+
                         });
 
                         // ctx.request.request.start('GET', requestUri, { 'If-None-Match': ctx.request.res.etag, 'Wait': 60 });
