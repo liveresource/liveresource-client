@@ -15,12 +15,15 @@
     var debugMode = DEBUG && typeof(window.console) !== "undefined";
     if (typeof define === 'function' && define['amd']) {
         // AMD anonymous module
-        define(['module'], function(module) { module.exports = factory(window, debugMode); });
+        define(['module', 'websockhop'], function(module, websockhop) { module.exports = factory(window, websockhop, debugMode); });
     } else {
         // No module loader (plain <script> tag) - put directly in global namespace
-        window['LiveResource'] = factory(window, debugMode);
+        if (!('WebSockHop' in window)) {
+            throw "Require WebSockHop";
+        }
+        window['LiveResource'] = factory(window, window.WebSockHop, debugMode);
     }
-})(function(window, debugMode) {
+})(function(window, WebSockHop, debugMode) {
 
     var debug;
 
@@ -335,6 +338,7 @@
     };
     Engine.prototype._getPreferredEndpointsForResources = function() {
         var valueWaitEndpoints = {};
+        var multiplexWsEndpoints = {};
         var multiplexWaitEndpoints = {};
         var changeWaitPolls = {};
 
@@ -342,7 +346,10 @@
             if (res.changesWaitUri) {
                 changeWaitPolls[res.changesWaitUri] = res;
             } else {
-                if (res.multiplexWaitUri) {
+                if (res.multiplexWsUri) {
+                    var endpoint = getOrCreateKey(multiplexWsEndpoints, res.multiplexWsUri, { items: [] });
+                    endpoint.items.push(res);
+                } else if (res.multiplexWaitUri) {
                     var endpoint = getOrCreateKey(multiplexWaitEndpoints, res.multiplexWaitUri, { items: [] });
                     endpoint.items.push(res);
                 } else {
@@ -352,11 +359,15 @@
         }, this);
 
         var result = {
-            multiplexWaitEndpoints: {},
             valueWaitEndpoints: {},
+            multiplexWsEndpoints: {},
+            multiplexWaitEndpoints: {},
             changeWaitPolls: {}
         };
 
+        forEachOwnKeyValue(multiplexWsEndpoints, function(waitUri, endpoint) {
+            result.multiplexWsEndpoints[waitUri] = { items: endpoint.items };
+        }, this);
         forEachOwnKeyValue(multiplexWaitEndpoints, function(waitUri, endpoint) {
             if (endpoint.items.length > 1 || !endpoint.items[0].valueWaitUri) {
                 result.multiplexWaitEndpoints[waitUri] = { items: endpoint.items };
@@ -373,16 +384,16 @@
 
         return result;
     };
-    Engine.prototype._createValueWaitPoll = function(endpointUri, item) {
+    Engine.prototype._createValueWaitRequest = function(endpointUri, item) {
         var self = this;
         var poll = {
             uri: endpointUri,
             request: new Pollymer.Request(),
             res: item,
-            polling: false
+            isActive: false
         };
         poll.request.on("finished", function(code, result, headers) {
-            poll.polling = false;
+            poll.isActive = false;
             self._onFinishedValueWait(poll, code, result, headers);
         });
         return poll;
@@ -407,16 +418,16 @@
 
         this._update();
     };
-    Engine.prototype._createMultiplexWaitPoll = function(endpointUri, items) {
+    Engine.prototype._createMultiplexWaitRequest = function(endpointUri, items) {
         var self = this;
         var poll = {
             uri: endpointUri,
             request: new Pollymer.Request(),
             resItems: items,
-            polling: false
+            isActive: false
         };
         poll.request.on("finished", function(code, result, headers) {
-            poll.polling = false;
+            poll.isActive = false;
             self._onFinishedMultiplexWait(poll, code, result, headers);
         });
         return poll;
@@ -457,16 +468,16 @@
 
         this._update();
     };
-    Engine.prototype._createChangesWaitPoll = function(endpointUri, item) {
+    Engine.prototype._createChangesWaitRequest = function(endpointUri, item) {
         var self = this;
         var poll = {
             uri: endpointUri,
             request: new Pollymer.Request(),
             res: item,
-            polling: false
+            isActive: false
         };
         poll.request.on("finished", function(code, result, headers) {
-            poll.polling = false;
+            poll.isActive = false;
             self._onFinishedChangesWait(poll, code, result, headers);
         });
         return poll;
@@ -509,203 +520,129 @@
             this._timer = nextUpdate(function () {
 
                 this._timer = null;
+                var _this = this;
 
                 // restart our long poll
                 debug.info('engine: setup long polls');
 
                 var preferredEndpoints = this._getPreferredEndpointsForResources();
 
-                var pollsToRemove = [];
-                forEachOwnKeyValue(this._valueWaitPolls, function(endpointUri, poll) {
-
-                    var removedOrChanged = false;
-
-                    if (endpointUri in preferredEndpoints.valueWaitEndpoints) {
-                        // we already have a poll set up here, see if there are any differences in the resources being
-                        // looked at.
-
-                        var theEndpoint = preferredEndpoints.valueWaitEndpoints[endpointUri];
-
-                        if (theEndpoint.item.uri != poll.res.uri) {
+                var adjustEndpoints = function(label, requestList, endpointList, changeTest, abortRequest, newRequest, startRequest) {
+                    var pollsToRemove = [];
+                    forEachOwnKeyValue(requestList, function(endpointUri, request) {
+                        var removedOrChanged = false;
+                        if (endpointUri in endpointList) {
+                            var ctx = {
+                                endpoint: endpointList[endpointUri],
+                                request: request,
+                                removedOrChanged: removedOrChanged
+                            };
+                            changeTest(ctx);
+                            removedOrChanged = ctx.removedOrChanged;
+                        } else {
                             removedOrChanged = true;
                         }
-                    } else {
-                        removedOrChanged = true;
+                        if (removedOrChanged) {
+                            pollsToRemove.push(endpointUri);
+                        }
+                        delete endpointList[endpointUri];
+                    }, this);
+                    for (var i = 0; i < pollsToRemove.length; i++) {
+                        var pollToRemove = pollsToRemove[i];
+                        debug.info("Remove '" + label + "' endpoint - '" + pollToRemove + "'.");
+                        abortRequest(requestList[pollToRemove]);
+                        delete requestList[pollToRemove];
                     }
+                    forEachOwnKeyValue(endpointList, function(endpointUri, endpoint) {
+                        debug.info("Adding '" + label + "' endpoint - '" + endpointUri + "'.");
+                        requestList[endpointUri] = newRequest(endpointUri, endpoint);
+                    }, this);
+                    forEachOwnKeyValue(requestList, function(endpointUri, request) {
+                        if (!request.isActive) {
+                            var ctx = {
+                                isActive: false,
+                                endpointUri: endpointUri,
+                                request: request
+                            };
+                            startRequest(ctx);
+                            request.isActive = ctx.isActive;
+                        }
+                    });
+                };
 
-                    if (removedOrChanged) {
-
-                        // endpoint has been removed or changed, so remove it
-                        pollsToRemove.push(endpointUri);
-
-                    }
-
-                    // remove from "preferred endpoints" list.
-                    // at the end of the loop, the items remaining in this
-                    // list are the ones that are new
-                    delete preferredEndpoints.valueWaitEndpoints[endpointUri];
-
-                }, this);
-
-                // Remove these items (now, since it's probably not a good idea to modify the container
-                // in the loop
-                for (var i = 0; i < pollsToRemove.length; i++) {
-                    var pollToRemove = pollsToRemove[i];
-                    debug.info("Removing Value Wait Endpoint - '" + pollToRemove + "'.");
-                    this._valueWaitPolls[pollToRemove].request.abort();
-                    delete this._valueWaitPolls[pollToRemove];
-                }
-
-                forEachOwnKeyValue(preferredEndpoints.valueWaitEndpoints, function(endpointUri, endpoint) {
-                    debug.info("Adding Value Wait Endpoint - '" + endpointUri + "'.");
-                    var newPoll = this._createValueWaitPoll(endpointUri, endpoint.item);
-                    this._valueWaitPolls[endpointUri] = newPoll;
-                }, this);
-
-                forEachOwnKeyValue(this._valueWaitPolls, function(endpointUri, poll) {
-                    if (!poll.polling) {
-                        var requestUri = poll.uri;
+                adjustEndpoints(
+                    "Value Wait",
+                    this._valueWaitPolls,
+                    preferredEndpoints.valueWaitEndpoints,
+                    function(ctx) { if (ctx.endpoint.item.uri != ctx.request.res.uri) { ctx.removedOrChanged = true; } },
+                    function(request) { request.request.abort(); },
+                    function(endpointUri, endpoint) { return _this._createValueWaitRequest(endpointUri, endpoint.item); },
+                    function(ctx) {
+                        var requestUri = ctx.request.uri;
                         debug.info("Value Wait Request URI: " + requestUri);
-                        poll.polling = true;
-                        poll.request.start('GET', requestUri, { 'If-None-Match': poll.res.etag, 'Wait': 55 });
+                        ctx.request.request.start('GET', requestUri, { 'If-None-Match': ctx.request.res.etag, 'Wait': 55 });
+                        ctx.isActive = true;
                     }
-                }, this);
+                );
 
-                pollsToRemove = [];
-                forEachOwnKeyValue(this._multiplexWaitPolls, function(endpointUri, poll) {
-
-                    var removedOrChanged = false;
-
-                    if (endpointUri in preferredEndpoints.multiplexWaitEndpoints) {
-                        // we already have a poll set up here, see if there are any differences in the resources being
-                        // looked at.
-
-                        var theEndpoint = preferredEndpoints.multiplexWaitEndpoints[endpointUri];
-
-                        if (theEndpoint.items.length != poll.resItems.length) {
-                            removedOrChanged = true;
+                adjustEndpoints(
+                    "Multiplex Wait",
+                    this._multiplexWaitPolls,
+                    preferredEndpoints.multiplexWaitEndpoints,
+                    function(ctx) {
+                        if (ctx.endpoint.items.length != ctx.request.resItems.length) {
+                            ctx.removedOrChanged = true
                         } else {
                             var preferredEndpointItemUris = [];
-                            for (var i = 0; i < theEndpoint.items.length; i++) {
-                                preferredEndpointItemUris.push(theEndpoint.items[i].uri);
+                            for (var i = 0; i < ctx.endpoint.items.length; i++) {
+                                preferredEndpointItemUris.push(ctx.endpoint.items[i].uri);
                             }
                             preferredEndpointItemUris.sort();
 
                             var pollResourceItemUris = [];
-                            for (var i = 0; i < poll.resItems.length; i++) {
-                                pollResourceItemUris.push(poll.resItems[i].uri);
+                            for (var i = 0; i < ctx.request.resItems.length; i++) {
+                                pollResourceItemUris.push(ctx.request.resItems[i].uri);
                             }
                             pollResourceItemUris.sort();
 
                             for (var i = 0; i < preferredEndpointItemUris.length; i++) {
                                 if (preferredEndpointItemUris[i] != pollResourceItemUris[i]) {
-                                    removedOrChanged = true;
+                                    ctx.removedOrChanged = true;
                                 }
                             }
                         }
-                    } else {
-                        removedOrChanged = true;
-                    }
-
-                    if (removedOrChanged) {
-
-                        // endpoint has been removed or changed, so remove it
-                        pollsToRemove.push(endpointUri);
-
-                    }
-
-                    // remove from "preferred endpoints" list so we can delete stuff
-                    delete preferredEndpoints.multiplexWaitEndpoints[endpointUri];
-
-                }, this);
-
-                // Remove these items (now, since it's probably not a good idea to modify the container
-                // in the loop
-                for (var i = 0; i < pollsToRemove.length; i++) {
-                    var pollToRemove = pollsToRemove[i];
-                    debug.info("Removing Multiplex Wait Endpoint - '" + pollToRemove + "'.");
-                    this._multiplexWaitPolls[pollToRemove].request.abort();
-                    delete this._multiplexWaitPolls[pollToRemove];
-                }
-
-                forEachOwnKeyValue(preferredEndpoints.multiplexWaitEndpoints, function(endpointUri, endpoint) {
-                    debug.info("Adding Multiplex Wait Endpoint - '" + endpointUri + "'.");
-
-                    var newPoll = this._createMultiplexWaitPoll(endpointUri, endpoint.items.slice());
-                    this._multiplexWaitPolls[endpointUri] = newPoll;
-                }, this);
-
-                forEachOwnKeyValue(this._multiplexWaitPolls, function(endpointUri, poll) {
-                    if (!poll.polling) {
+                    },
+                    function (request) { request.request.abort(); },
+                    function (endpointUri, endpoint) { return _this._createMultiplexWaitRequest(endpointUri, endpoint.items.slice()); },
+                    function (ctx) {
                         var urlSegments = [];
-                        for (var i = 0; i < poll.resItems.length; i++) {
-                            var res = poll.resItems[i];
+                        for (var i = 0; i < ctx.request.resItems.length; i++) {
+                            var res = ctx.request.resItems[i];
                             var uri = res.uri;
                             urlSegments.push('u=' + encodeURIComponent(uri) + '&inm=' + encodeURIComponent(res.etag));
                         }
-                        var requestUri = poll.uri + '?' + urlSegments.join('&');
+                        var requestUri = ctx.request.uri + '?' + urlSegments.join('&');
 
                         debug.info("Multiplex Wait Request URI: " + requestUri);
-                        poll.polling = true;
-                        poll.request.start('GET', requestUri, { 'Wait': 55 });
+                        ctx.request.request.start('GET', requestUri, { 'Wait': 55 });
+                        ctx.isActive = true;
                     }
-                }, this);
+                );
 
-                pollsToRemove = [];
-                forEachOwnKeyValue(this._changesWaitPolls, function(endpointUri, poll) {
-
-                    var removedOrChanged = false;
-
-                    if (endpointUri in preferredEndpoints.changeWaitPolls) {
-                        // we already have a poll set up here, see if there are any differences in the resources being
-                        // looked at.
-
-                        var theEndpoint = preferredEndpoints.changeWaitPolls[endpointUri];
-
-                        if (theEndpoint.item.uri != poll.res.uri) {
-                            removedOrChanged = true;
-                        }
-                    } else {
-                        removedOrChanged = true;
-                    }
-
-                    if (removedOrChanged) {
-
-                        // endpoint has been removed or changed, so remove it
-                        pollsToRemove.push(endpointUri);
-
-                    }
-
-                    // remove from "preferred endpoints" list.
-                    // at the end of the loop, the items remaining in this
-                    // list are the ones that are new
-                    delete preferredEndpoints.changeWaitPolls[endpointUri];
-
-                }, this);
-
-                // Remove these items (now, since it's probably not a good idea to modify the container
-                // in the loop
-                for (var i = 0; i < pollsToRemove.length; i++) {
-                    var pollToRemove = pollsToRemove[i];
-                    debug.info("Removing Changes Wait Endpoint - '" + pollToRemove + "'.");
-                    this._changesWaitPolls[pollToRemove].request.abort();
-                    delete this._changesWaitPolls[pollToRemove];
-                }
-
-                forEachOwnKeyValue(preferredEndpoints.changeWaitPolls, function(endpointUri, endpoint) {
-                    debug.info("Adding Changes Wait Endpoint - '" + endpointUri + "'.");
-                    var newPoll = this._createChangesWaitPoll(endpointUri, endpoint.item);
-                    this._changesWaitPolls[endpointUri] = newPoll;
-                }, this);
-
-                forEachOwnKeyValue(this._changesWaitPolls, function(endpointUri, poll) {
-                    if (!poll.polling) {
-                        var requestUri = poll.uri;
+                adjustEndpoints(
+                    "Changed Wait",
+                    this._changesWaitPolls,
+                    preferredEndpoints.changeWaitPolls,
+                    function(ctx) { if (ctx.endpoint.item.uri != ctx.request.res.uri) { ctx.removedOrChanged = true; } },
+                    function(request) { request.request.abort(); },
+                    function(endpointUri, endpoint) { return _this._createChangesWaitRequest(endpointUri, endpoint.item); },
+                    function(ctx) {
+                        var requestUri = ctx.request.uri;
                         debug.info("Changes Wait Request URI: " + requestUri);
-                        poll.polling = true;
-                        poll.request.start('GET', requestUri, { 'Wait': 55 });
+                        ctx.request.request.start('GET', requestUri, { 'Wait': 55 });
+                        ctx.isActive = true;
                     }
-                }, this);
+                );
 
             }, this);
         }
@@ -721,12 +658,13 @@
         return this._resources[uri];
     };
 
-    Engine.prototype.addObjectResource = function (owner, uri, etag, valueWaitUri, multiplexWaitUri) {
+    Engine.prototype.addObjectResource = function (owner, uri, etag, valueWaitUri, multiplexWaitUri, multiplexWsUri) {
         var res = this._getOrCreateResource(uri);
         res.owners.push(owner);
         res.etag = etag;
         res.valueWaitUri = valueWaitUri;
         res.multiplexWaitUri = multiplexWaitUri;
+        res.multiplexWsUri = multiplexWsUri;
         this._update();
     };
 
@@ -750,6 +688,8 @@
         this._etag = null;
         this._valueWaitUri = null;
         this._changesWaitUri = null;
+        this._webSocketUri = null;
+        this._webSockHop = null;
     };
     LiveResource.prototype.on = function (type, handler) {
         this._events.on(type, handler);
@@ -763,6 +703,7 @@
                 var etag = null;
                 var valueWaitUri = null;
                 var multiplexWaitUri = null;
+                var multiplexWsUri = null;
 
                 forEachOwnKeyValue(headers, function(key, header) {
 
@@ -776,6 +717,9 @@
                         }
                         if (links && links['multiplex-wait']) {
                             multiplexWaitUri = toAbsoluteUri(self._uri, links['multiplex-wait']['href']);
+                        }
+                        if (links && links['multiplex-ws']) {
+                            multiplexWsUri = toAbsoluteUri(self._uri, links['multiplex-ws']['href']);
                         }
                     }
 
@@ -793,6 +737,10 @@
 
                 if (multiplexWaitUri) {
                     debug.info('multiplex-wait: [' + multiplexWaitUri + ']');
+                }
+
+                if (multiplexWsUri) {
+                    debug.info('multiplex-ws: [' + multiplexWsUri + ']');
                 }
 
                 if(code >= 200 && code < 400) {
