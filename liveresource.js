@@ -332,6 +332,7 @@
     var Engine = function () {
         this._resources = {};
         this._timer = null;
+        this._multiplexWebSockets = {};
         this._multiplexWaitPolls = {};
         this._valueWaitPolls = {};
         this._changesWaitPolls = {};
@@ -383,6 +384,16 @@
         }, this);
 
         return result;
+    };
+    Engine.prototype._createMultiplexWsRequest = function(endpointUri, items) {
+        var self = this;
+        var request = {
+            uri: endpointUri,
+            socket: new WebSockHop(endpointUri),
+            resItems: items,
+            isActive: false
+        };
+        return request;
     };
     Engine.prototype._createValueWaitRequest = function(endpointUri, item) {
         var self = this;
@@ -571,6 +582,53 @@
                 };
 
                 adjustEndpoints(
+                    "Multiplex WS",
+                    this._multiplexWebSockets,
+                    preferredEndpoints.multiplexWsEndpoints,
+                    function(ctx) {
+                        if (ctx.endpoint.items.length != ctx.request.resItems.length) {
+                            ctx.removedOrChanged = true
+                        } else {
+                            var preferredEndpointItemUris = [];
+                            for (var i = 0; i < ctx.endpoint.items.length; i++) {
+                                preferredEndpointItemUris.push(ctx.endpoint.items[i].uri);
+                            }
+                            preferredEndpointItemUris.sort();
+
+                            var pollResourceItemUris = [];
+                            for (var i = 0; i < ctx.request.resItems.length; i++) {
+                                pollResourceItemUris.push(ctx.request.resItems[i].uri);
+                            }
+                            pollResourceItemUris.sort();
+
+                            for (var i = 0; i < preferredEndpointItemUris.length; i++) {
+                                if (preferredEndpointItemUris[i] != pollResourceItemUris[i]) {
+                                    ctx.removedOrChanged = true;
+                                }
+                            }
+                        }},
+                    function(request) { request.socket.abort(); },
+                    function(endpointUri, endpoint) { return _this._createMultiplexWsRequest(endpointUri, endpoint.items); },
+                    function(ctx) {
+                        var requestUri = ctx.request.uri;
+                        debug.info("Multiplex Ws Request URI: " + requestUri);
+
+                        ctx.request.socket.request({
+                            type: 'subscribe',
+                            mode: 'value',
+                            uri: requestUri
+                        }, function (result) {
+                            if (result.type == 'subscribed') {
+                                console.log(result);
+                            }
+                        });
+
+                        // ctx.request.request.start('GET', requestUri, { 'If-None-Match': ctx.request.res.etag, 'Wait': 60 });
+                        ctx.isActive = true;
+                    }
+                );
+
+                adjustEndpoints(
                     "Value Wait",
                     this._valueWaitPolls,
                     preferredEndpoints.valueWaitEndpoints,
@@ -630,7 +688,7 @@
                 );
 
                 adjustEndpoints(
-                    "Changed Wait",
+                    "Changes Wait",
                     this._changesWaitPolls,
                     preferredEndpoints.changeWaitPolls,
                     function(ctx) { if (ctx.endpoint.item.uri != ctx.request.res.uri) { ctx.removedOrChanged = true; } },
@@ -688,8 +746,7 @@
         this._etag = null;
         this._valueWaitUri = null;
         this._changesWaitUri = null;
-        this._webSocketUri = null;
-        this._webSockHop = null;
+        this._multiplexWsUri = null;
     };
     LiveResource.prototype.on = function (type, handler) {
         this._events.on(type, handler);
@@ -741,6 +798,7 @@
 
                 if (multiplexWsUri) {
                     debug.info('multiplex-ws: [' + multiplexWsUri + ']');
+                    self._multiplexWsUri = multiplexWsUri;
                 }
 
                 if(code >= 200 && code < 400) {
@@ -749,7 +807,7 @@
                         self._events.trigger('value', self, result);
                     }
                     if (self._etag) {
-                        engine.addObjectResource(self, self._uri, self._etag, self._valueWaitUri, multiplexWaitUri);
+                        engine.addObjectResource(self, self._uri, self._etag, self._valueWaitUri, multiplexWaitUri, self._multiplexWsUri);
                         if (!this._started) {
                             this._started = true;
                             self._events.trigger('ready', self);
