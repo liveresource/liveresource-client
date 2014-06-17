@@ -1,31 +1,56 @@
 <html>
-  <head>
+<head>
     <script src="jquery-1.11.0.min.js"></script>
     <script src="json2.js"></script>
     <script src="pollymer-1.1.1.js"></script>
     <script src="liveresource.js"></script>
 
     <script type="text/javascript">
-      $(function() {
-        var counter = new LiveResource('/counter/1/');
-        counter.on('value', function(value) {
-          $('#counter-value').text(value);
+        $(function() {
+            var counter = new LiveResource('//127.0.0.1:3000/counter/1/');
+            counter.on('value', function(value) {
+                $('#counter-value').text(value);
+            });
         });
-      });
 
-      var addHit = function() {
-        $('#add-button').attr('disabled', 'true');
-        $('#add-button').text('Adding...');
-        $.post('/counter/1/', function(data) {
-          $('#add-button').text('Add');
-          $('#add-button').removeAttr('disabled');
-        });
-      };
+        var addHit = function() {
+            $('#add-button').attr('disabled', 'true');
+            $('#add-button').text('Adding...');
+            $.post('//127.0.0.1:3000/counter/1/', function(data) {
+                $('#add-button').text('Add');
+                $('#add-button').removeAttr('disabled');
+            });
+        };
+
+        var enableButton2 = function() {
+            $('#enable-button-2').attr('disabled', 'true');
+            $('#enable-button-2').text('Enabled');
+            $('#add-button-2').removeAttr('disabled');
+            var counter2 = new LiveResource('//127.0.0.1:3000/counter/2/');
+            counter2.on('value', function(value) {
+                $('#counter-value-2').text(value);
+            });
+        };
+
+        var addHit2 = function() {
+            $('#add-button-2').attr('disabled', 'true');
+            $('#add-button-2').text('Adding...');
+            $.post('//127.0.0.1:3000/counter/2/', function(data) {
+                $('#add-button-2').text('Add');
+                $('#add-button-2').removeAttr('disabled');
+            });
+        };
     </script>
-  </head>
+</head>
 
-  <body>
-    <p>Counter: <span id="counter-value"></span></p>
-    <p><button id="add-button" type="button" onclick="addHit();">Add</button></p>
-  </body>
+<body>
+<p>Counter: <span id="counter-value"></span></p>
+<p><button id="add-button" type="button" onclick="addHit();">Add</button></p>
+
+<p><button id="enable-button-2" type="button" onclick="enableButton2();">Enable Button 2</button></p>
+
+<p>Counter: <span id="counter-value-2"></span></p>
+<p><button id="add-button-2" type="button" onclick="addHit2();" disabled>Add</button></p>
+
+</body>
 </html>
