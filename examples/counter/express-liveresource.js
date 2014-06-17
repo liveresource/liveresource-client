@@ -177,7 +177,7 @@ ExpressLiveResource.prototype.listenWebSocket = function (server) {
     var wss = new WebSocketServer({
         server: server,
         path: '/updates/',
-        handleProtocols: function(protocols, cb) {
+        handleProtocols: function (protocols, cb) {
             if (protocols && protocols.indexOf('liveresource') != -1) {
                 cb(true, 'liveresource');
             } else {
@@ -188,7 +188,12 @@ ExpressLiveResource.prototype.listenWebSocket = function (server) {
 
     wss.on('connection', function (ws) {
         console.log('ws connection opened');
-        var l = {ws: ws, uris: [], host: ws.host, secure: false};
+
+        // from WebSocketServer internals
+        var trustClient = false;
+        var secure = ((trustClient && ws.upgradeReq.headers['x-forwarded-proto'] === 'https') || ws._socket.encrypted);
+
+        var l = {ws: ws, uris: [], host: ws.host, secure: secure};
         ws.on('close', function () {
             console.log('ws client disconnected');
             var i = self._listeners.indexOf(l);
