@@ -121,7 +121,7 @@
     var forEachOwnKeyValue = function(obj, predicate, ctx) {
         for(var key in obj) {
             if (obj.hasOwnProperty(key)) {
-                var result = predicate.call(ctx, key, obj[key]);
+                var result = predicate.call(ctx || this, key, obj[key]);
                 if (typeof(result) != 'undefined' && !result) {
                     break;
                 }
@@ -185,6 +185,45 @@
         var uri = absolutizeURI(base, href);
         // debug.info("toAbsoluteUri: result = '" + uri + "'");
         return uri;
+    };
+
+    var beginsWith = function(str, find) {
+        return str.substring(0, find.length) == find;
+    };
+    var replaceStart = function(str, find, replace) {
+        return replace + str.substring(find.length);
+    };
+
+    var mapHttpUrlToWebSocketUrl = function(uri) {
+        var absoluteUri = toAbsoluteUri(window.location.href, uri);
+
+        var converted = absoluteUri;
+        if (beginsWith(absoluteUri, "http://")) {
+            converted = replaceStart(absoluteUri, "http://", "ws://");
+        } else if (beginsWith(absoluteUri, "https://")) {
+            converted = replaceStart(absoluteUri, "https://", "wss://");
+        }
+
+        if (!beginsWith(converted, "ws://") && !beginsWith(converted, "wss://")) {
+            throw "not valid";
+        }
+
+        return converted;
+    };
+
+    var mapWebSocketUrlToHttpUrl = function(url) {
+        var converted = url;
+        if (beginsWith(url, "ws://")) {
+            converted = replaceStart(url, "ws://", "http://");
+        } else if (beginsWith(url, "wss://")) {
+            converted = replaceStart(url, "wss://", "https://");
+        }
+
+        if (!beginsWith(converted, "http://") && !beginsWith(converted, "https://")) {
+            throw "not valid";
+        }
+
+        return converted;
     };
 
     // TODO: REFACTOR THIS
@@ -337,13 +376,13 @@
         this._valueWaitPolls = {};
         this._changesWaitPolls = {};
     };
-    Engine.prototype._getPreferredEndpointsForResources = function() {
+    Engine.prototype._getPreferredEndpointsForResources = function(resources) {
         var valueWaitEndpoints = {};
         var multiplexWsEndpoints = {};
         var multiplexWaitEndpoints = {};
         var changeWaitPolls = {};
 
-        forEachOwnKeyValue(this._resources, function(resUri, res) {
+        forEachOwnKeyValue(resources, function(resUri, res) {
             if (res.changesWaitUri) {
                 changeWaitPolls[res.changesWaitUri] = res;
             } else {
@@ -357,7 +396,7 @@
                     valueWaitEndpoints[res.valueWaitUri] = res;
                 }
             }
-        }, this);
+        });
 
         var result = {
             valueWaitEndpoints: {},
@@ -368,22 +407,47 @@
 
         forEachOwnKeyValue(multiplexWsEndpoints, function(waitUri, endpoint) {
             result.multiplexWsEndpoints[waitUri] = { items: endpoint.items };
-        }, this);
+        });
         forEachOwnKeyValue(multiplexWaitEndpoints, function(waitUri, endpoint) {
             if (endpoint.items.length > 1 || !endpoint.items[0].valueWaitUri) {
                 result.multiplexWaitEndpoints[waitUri] = { items: endpoint.items };
             } else {
                 valueWaitEndpoints[endpoint.items[0].valueWaitUri] = endpoint.items[0];
             }
-        }, this);
+        });
         forEachOwnKeyValue(valueWaitEndpoints, function(waitUri, endpoint) {
             result.valueWaitEndpoints[waitUri] = { item: endpoint };
-        }, this);
+        });
         forEachOwnKeyValue(changeWaitPolls, function(waitUri, endpoint) {
             result.changeWaitPolls[waitUri] = { item: endpoint };
-        }, this);
+        });
 
         return result;
+    };
+    Engine.prototype.updateValueItem = function(resource, headers, body) {
+
+        forEachOwnKeyValue(headers, function(key, header) {
+            var lowercaseKey = key.toLocaleLowerCase();
+            if (lowercaseKey == 'etag') {
+                resource.etag = header;
+                return false;
+            }
+        });
+
+        for (var i = 0; i < resource.owners.length; i++) {
+            var owner = resource.owners[i];
+            owner._events.trigger('value', owner, body);
+        }
+
+    };
+    Engine.prototype.updateValueItemMultiplex = function(resources, uri, headers, body) {
+        forEachOwnKeyValue(resources, function(resourceUri, resource) {
+            if (resourceUri == uri) {
+
+                this.updateValueItem(resource, headers, body);
+
+            }
+        }, this);
     };
     Engine.prototype._createMultiplexWsRequest = function(endpointUri, items) {
         var self = this;
@@ -405,26 +469,16 @@
         };
         poll.request.on("finished", function(code, result, headers) {
             poll.isActive = false;
-            self._onFinishedValueWait(poll, code, result, headers);
+            self._onFinishedValueWaitRequest(poll, code, result, headers);
         });
         return poll;
     };
-    Engine.prototype._onFinishedValueWait = function(poll, code, result, headers) {
+    Engine.prototype._onFinishedValueWaitRequest = function(poll, code, result, headers) {
 
         if (code >= 200 && code < 300) {
 
-            forEachOwnKeyValue(headers, function(key, header) {
-                var lkey = key.toLocaleLowerCase();
-                if (lkey == 'etag') {
-                    poll.res.etag = header;
-                    return false;
-                }
-            });
+            this.updateValueItem(poll.res, headers, result);
 
-            for (var i = 0; i < poll.res.owners.length; i++) {
-                var owner = poll.res.owners[i];
-                owner._events.trigger('value', owner, result);
-            }
         }
 
         this._update();
@@ -453,25 +507,7 @@
 
                 var absoluteUri = toAbsoluteUri(poll.uri, uri);
 
-                forEachOwnKeyValue(this._resources, function (resUri, res) {
-                    if (resUri == absoluteUri) {
-
-                        forEachOwnKeyValue(item.headers, function(key, header) {
-                            var lkey = key.toLocaleLowerCase();
-                            if (lkey == 'etag') {
-                                res.etag = header;
-                                return false;
-                            }
-                        });
-
-                        for (var i = 0; i < res.owners.length; i++) {
-                            var owner = res.owners[i];
-                            owner._events.trigger('value', owner, item.body);
-                        }
-
-                        return false;
-                    }
-                }, this);
+                this.updateValueItemMultiplex(this._resources, absoluteUri, item.headers, item.body);
 
             }, this);
 
@@ -536,39 +572,62 @@
                 // restart our long poll
                 debug.info('engine: setup long polls');
 
-                var preferredEndpoints = this._getPreferredEndpointsForResources();
+                var preferredEndpoints = this._getPreferredEndpointsForResources(this._resources);
 
-                var adjustEndpoints = function(label, requestList, endpointList, changeTest, abortRequest, newRequest, startRequest) {
-                    var pollsToRemove = [];
-                    forEachOwnKeyValue(requestList, function(endpointUri, request) {
+                var adjustEndpoints = function(label, currentEndpointsMap, preferredEndpointsMap, changeTest, abortRequest, newRequest, startRequest) {
+
+                    // Keep track of list of new endpoints to enable
+                    var newEndpoints = {};
+                    forEachOwnKeyValue(preferredEndpointsMap, function(endpointUri, endpoint) {
+                        newEndpoints[endpointUri] = endpoint;
+                    });
+
+                    // Make a list of endpoints to disable...
+                    var endpointsToDisable = [];
+                    forEachOwnKeyValue(currentEndpointsMap, function(endpointUri, request) {
+                        // This item is already known, so remove endpoint from "new endpoints".
+                        delete newEndpoints[endpointUri];
+
                         var removedOrChanged = false;
-                        if (endpointUri in endpointList) {
+                        if (!(endpointUri in preferredEndpointsMap)) {
+                            // If item is not in preferred endpoints map, then it has been
+                            // removed. Mark for disabling.
+                            removedOrChanged = true;
+                        } else {
+                            // If item is in preferred endpoints map, then
+                            // call "changeTest" to decide whether this item has changed.
                             var ctx = {
-                                endpoint: endpointList[endpointUri],
+                                endpoint: preferredEndpointsMap[endpointUri],
                                 request: request,
                                 removedOrChanged: removedOrChanged
                             };
                             changeTest(ctx);
                             removedOrChanged = ctx.removedOrChanged;
-                        } else {
-                            removedOrChanged = true;
                         }
                         if (removedOrChanged) {
-                            pollsToRemove.push(endpointUri);
+                            // If marked, add to "delete" list
+                            endpointsToDisable.push(endpointUri);
                         }
-                        delete endpointList[endpointUri];
                     }, this);
-                    for (var i = 0; i < pollsToRemove.length; i++) {
-                        var pollToRemove = pollsToRemove[i];
+
+                    // ... and disable them.
+                    for (var i = 0; i < endpointsToDisable.length; i++) {
+                        var pollToRemove = endpointsToDisable[i];
                         debug.info("Remove '" + label + "' endpoint - '" + pollToRemove + "'.");
-                        abortRequest(requestList[pollToRemove]);
-                        delete requestList[pollToRemove];
+                        abortRequest(currentEndpointsMap[pollToRemove]);
+                        delete currentEndpointsMap[pollToRemove];
                     }
-                    forEachOwnKeyValue(endpointList, function(endpointUri, endpoint) {
+
+                    // Create new requests for endpoints that need them.
+                    // They will be created with isActive set to false.
+                    forEachOwnKeyValue(newEndpoints, function(endpointUri, endpoint) {
                         debug.info("Adding '" + label + "' endpoint - '" + endpointUri + "'.");
-                        requestList[endpointUri] = newRequest(endpointUri, endpoint);
+                        currentEndpointsMap[endpointUri] = newRequest(endpointUri, endpoint);
                     }, this);
-                    forEachOwnKeyValue(requestList, function(endpointUri, request) {
+
+                    // For any current endpoint, start them up if
+                    // they are not currently marked as being isActive.
+                    forEachOwnKeyValue(currentEndpointsMap, function(endpointUri, request) {
                         if (!request.isActive) {
                             var ctx = {
                                 isActive: false,
@@ -610,23 +669,43 @@
                     function(request) { request.socket.abort(); },
                     function(endpointUri, endpoint) { return _this._createMultiplexWsRequest(endpointUri, endpoint.items); },
                     function(ctx) {
+                        var request = ctx.request;
                         var requestUri = ctx.request.uri;
+                        var items = ctx.request.resItems;
                         debug.info("Multiplex Ws Request URI: " + requestUri);
 
-                        ctx.request.socket.on("opened", function() {
+                        request.socket.on("opened", function() {
 
-                            ctx.request.socket.on("message", function(data) {
-                                console.log(data);
-                            });
+                            for(var i = 0; i < items.length; i++) {
+                                var item = items[i];
 
-                            ctx.request.socket.request({
-                                type: 'subscribe',
-                                mode: 'value',
-                                uri: requestUri
-                            }, function (result) {
-                                if (result.type == 'subscribed') {
-                                    console.log(result);
-                                }
+                                var uri = item.uri;
+                                debug.info("item [" + i + "] at uri: " + uri);
+
+                                var absoluteUri = toAbsoluteUri(requestUri, uri);
+                                var httpUri = mapWebSocketUrlToHttpUrl(absoluteUri);
+
+                                request.socket.request({
+                                    type: 'subscribe',
+                                    mode: 'value',
+                                    uri: httpUri
+                                }, function (result) {
+                                    if (result.type == 'subscribed') {
+
+                                        debug.info("Successfully subscribed to: " + httpUri);
+
+                                    }
+                                });
+                            }
+
+                            request.socket.on("message", function(data) {
+
+                                var uri = data.uri;
+                                var absoluteUri = toAbsoluteUri(requestUri, uri);
+                                var httpUri = mapWebSocketUrlToHttpUrl(absoluteUri);
+
+                                _this.updateValueItemMultiplex(_this._resources, httpUri, data.headers, data.body);
+
                             });
 
                         });
@@ -784,7 +863,7 @@
                             multiplexWaitUri = toAbsoluteUri(self._uri, links['multiplex-wait']['href']);
                         }
                         if (links && links['multiplex-ws']) {
-                            multiplexWsUri = toAbsoluteUri(self._uri, links['multiplex-ws']['href']);
+                            multiplexWsUri = mapHttpUrlToWebSocketUrl(toAbsoluteUri(self._uri, links['multiplex-ws']['href']));
                         }
                     }
 
