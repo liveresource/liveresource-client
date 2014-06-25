@@ -3,11 +3,12 @@
     <script src="jquery-1.11.0.min.js"></script>
     <script src="json2.js"></script>
     <script src="pollymer-1.1.1.js"></script>
+    <script src="websockhop-0.1.0.js"></script>
     <script src="liveresource.js"></script>
 
     <script type="text/javascript">
         $(function() {
-            var counter = new LiveResource('//127.0.0.1:3000/counter/1/');
+            var counter = new LiveResource('/counter/1/');
             counter.on('value', function(value) {
                 $('#counter-value').text(value);
             });
@@ -16,7 +17,7 @@
         var addHit = function() {
             $('#add-button').attr('disabled', 'true');
             $('#add-button').text('Adding...');
-            $.post('//127.0.0.1:3000/counter/1/', function(data) {
+            $.post('/counter/1/', function(data) {
                 $('#add-button').text('Add');
                 $('#add-button').removeAttr('disabled');
             });
@@ -26,7 +27,7 @@
             $('#enable-button-2').attr('disabled', 'true');
             $('#enable-button-2').text('Enabled');
             $('#add-button-2').removeAttr('disabled');
-            var counter2 = new LiveResource('//127.0.0.1:3000/counter/2/');
+            var counter2 = new LiveResource('/counter/2/');
             counter2.on('value', function(value) {
                 $('#counter-value-2').text(value);
             });
@@ -35,7 +36,7 @@
         var addHit2 = function() {
             $('#add-button-2').attr('disabled', 'true');
             $('#add-button-2').text('Adding...');
-            $.post('//127.0.0.1:3000/counter/2/', function(data) {
+            $.post('/counter/2/', function(data) {
                 $('#add-button-2').text('Add');
                 $('#add-button-2').removeAttr('disabled');
             });

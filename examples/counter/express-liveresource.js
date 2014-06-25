@@ -230,8 +230,8 @@ ExpressLiveResource.prototype.listenWebSocket = function (server) {
                 var resp = {id: req.id, type: 'unsubscribed'};
                 ws.send(JSON.stringify(resp));
             }
-            self._listeners.push(l);
         });
+        self._listeners.push(l);
     });
 };
 
