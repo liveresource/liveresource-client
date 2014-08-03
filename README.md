@@ -47,7 +47,7 @@ For example, to enable live updates of an object resource, make sure the resourc
 
 ```javascript
 var ExpressLiveResource = require('express-liveresource').ExpressLiveResource;
-var liveresource = new ExpressLiveResource(app);
+var liveResource = new ExpressLiveResource(app);
 
 app.get('/path/to/object', function (req, res) {
     var value = ... object value ...
@@ -56,7 +56,7 @@ app.get('/path/to/object', function (req, res) {
 
     var inm = req.get('If-None-Match');
     if (inm == etag) {
-        res.send(304);
+        res.status(304).end();
     } else {
         res.status(200).json(value);
     }
@@ -66,7 +66,7 @@ app.get('/path/to/object', function (req, res) {
 Then, whenever the object has been updated, call:
 
 ```javascript
-liveresource.updated('/path/to/object');
+liveResource.updated('/path/to/object');
 ```
 
 Protocol

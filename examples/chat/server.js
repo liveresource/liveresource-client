@@ -53,8 +53,8 @@ app.get(/^\/.*\.js$/, express.static(__dirname + '/../common/client'));
 
 // chat api
 
-var changesLink = function (room) {
-    return '/chat/' + room.id + '/messages/?after=' + room.messages.length;
+var changesLink = function (room, pos) {
+    return '</chat/' + room.id + '/messages/?after=' + pos + '>; rel=changes';
 };
 
 app.head('/chat/:id/message/', function (req, res) {
@@ -75,23 +75,38 @@ app.get('/chat/:id/message/', function (req, res) {
 
     var after = req.param('after');
     if (after != null) {
-        after = parseInt(after) - 1;
+        after = parseInt(after);
     }
 
     var messages = null;
+    var changesPos = null;
     if (after != null) {
-        messages = roomGetMessagesAfter(room, after, limit);
+        if (after < 0 || after > room.messages.length) {
+            res.status(404).end();
+            return;
+        }
+        messages = roomGetMessagesAfter(room, after - 1, limit);
+        changesPos = after + messages.length;
     } else {
         messages = roomGetMessagesBefore(room, room.messages.length, limit);
+        changesPos = room.messages.length;
     }
 
-    res.set('Link', '<' + changesLink(room) + '>; rel=changes');
+    res.set('Link', changesLink(room, changesPos));
     res.status(200).json(messages);
 });
 
 app.post('/chat/:id/message/', function (req, res) {
     var room = roomGetOrCreate(req.params.id);
-    roomAppendMessage(room, req.param('from'), req.param('text'));
-    liveResource.updated(req.url);
+    var prevChangesLink = changesLink(room, room.messages.length);
+
+    roomAppendMessage(room, req.body.from, req.body.text);
+
+    liveResource.updated(req.url, {
+        prevChangesLink: prevChangesLink,
+        query: {limit: '1'},
+        getItems: function (body) { return body; }
+    });
+
     res.send('Ok\n');
 });

@@ -7,8 +7,8 @@ var app = express();
 var server = app.listen(3000, function () {
     console.log('Listening on port %d', server.address().port);
 });
-var liveresource = new ExpressLiveResource(app);
-liveresource.listenWebSocket(server);
+var liveResource = new ExpressLiveResource(app);
+liveResource.listenWebSocket(server);
 
 // in-memory counter data
 
@@ -61,6 +61,6 @@ app.get('/counter/:id/', function (req, res) {
 
 app.post('/counter/:id/', function (req, res) {
     incCounter(req.params.id);
-    liveresource.updated(req.url);
+    liveResource.updated(req.url);
     res.send('Ok\n');
 });

@@ -128,7 +128,8 @@ ExpressLiveResource.prototype.middleware = function (req, res, next) {
     next();
 };
 
-ExpressLiveResource.prototype.updated = function (uri) {
+ExpressLiveResource.prototype.updated = function (uri, options) {
+    // TODO: options: prevChangesLink, query, getItems
     var self = this;
     this._internalRequest('GET', uri, {}, function (code, headers, body) {
         var etag = headers['ETag']; // FIXME: case stuff?
