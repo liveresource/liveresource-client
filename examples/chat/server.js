@@ -54,12 +54,16 @@ app.get(/^\/.*\.js$/, express.static(__dirname + '/../common/client'));
 // chat api
 
 var changesLink = function (room, pos) {
-    return '</chat/' + room.id + '/messages/?after=' + pos + '>; rel=changes';
+    return '/chat/' + room.id + '/message/?after=' + pos;
+};
+
+var changesLinkHeader = function (room, pos) {
+    return '<' + changesLink(room, pos) + '>; rel=changes';
 };
 
 app.head('/chat/:id/message/', function (req, res) {
     var room = roomGetOrCreate(req.params.id);
-    res.set('Link', '<' + changesLink(room) + '>; rel=changes');
+    res.set('Link', changesLinkHeader(room, room.messages.length));
     res.send('')
 });
 
@@ -92,7 +96,7 @@ app.get('/chat/:id/message/', function (req, res) {
         changesPos = room.messages.length;
     }
 
-    res.set('Link', changesLink(room, changesPos));
+    res.set('Link', changesLinkHeader(room, changesPos));
     res.status(200).json(messages);
 });
 
