@@ -1,0 +1,87 @@
+<html>
+  <head>
+    <script src="jquery-1.11.0.min.js"></script>
+    <script src="json2.js"></script>
+    <script src="pollymer-1.1.1.js"></script>
+    <script src="websockhop-0.1.0.js"></script>
+    <script src="liveresource.js"></script>
+
+    <script type="text/javascript">
+      {% if user %}var appendLog = function(s) {
+        var log = document.getElementById('chat-log');
+        log.innerHTML += s + '<br>\n';
+
+        if(log.scrollTop + log.clientHeight + 50 > log.scrollHeight)
+          log.scrollTop = log.scrollHeight;
+      };
+
+      $(function() {
+        var baseUri = '/chat/{{ room }}';
+
+        $('#send-button').click(function() {
+          var body = $('#chat-input').val();
+
+          $('#chat-input').attr('disabled', 'true');
+          $('#send-button').attr('disabled', 'true');
+          $('#send-button').text('Sending...');
+          $.post(baseUri + '/send/', { nick: '{{ user }}', body: body }, function() {
+            $('#chat-input').val('');
+            $('#send-button').text('Send');
+            $('#chat-input').removeAttr('disabled');
+            $('#send-button').removeAttr('disabled');
+          });
+          return false;
+        });
+
+        appendLog('*** connecting');
+
+        var chatlog = new LiveResource.Resource(baseUri + '/items/');
+        chatlog.on('child-added', function(item) {
+          appendLog('<b>' + item.from + '</b>: ' + item.body);
+        });
+        chatlog.on('ready', function() {
+          // get past items
+          $.get(baseUri + '/items/?limit=200', function(items) {
+            s = '';
+            for(var n = items.length - 1; n >= 0; --n) {
+              msg = items[n];
+              s += '<b>' + msg.from + '</b>: ' + msg.body + '<br>\n';
+            }
+
+            var log = document.getElementById('chat-log');
+            log.innerHTML += s;
+            log.scrollTop = log.scrollHeight;
+
+            appendLog('*** joined');
+          }, 'json');
+        });
+
+        $('#chat-input').focus();
+      });{% else %}$(function() {
+        var baseUri = '/chat/1';
+
+        $('#join-button').click(function() {
+          var nick = $('#nick-input').val();
+          window.location.href = baseUri + '/as/' + nick;
+          return false;
+        });
+
+        $('#nick-input').focus();
+      });{% endif %}
+    </script>
+  </head>
+
+  <body>
+    <h1>Chat</h1>
+
+    {% if user %}<div id="chat-log" style="display: block; width: 600px; height: 300px; overflow: auto; border: 2px solid black;"></div>
+    <form id="send-form">
+      <input type="text" id="chat-input" style="width: 600px;"/>
+      <button id="send-button">Send</button>
+    </form>{% else %}<form id="join-form">
+      Nickname:
+      <input type="text" id="nick-input" style="width: 400px;"/>
+      <button id="join-button">Join</button>
+    </form>{% endif %}
+  </body>
+</html>
