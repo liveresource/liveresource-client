@@ -1,0 +1,10 @@
+{
+  "name": "liveresource-examples-common",
+  "description": "common modules for liveresource examples",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "4.x",
+    "ws": "0.4.x"
+  }
+}

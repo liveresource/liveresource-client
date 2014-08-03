@@ -1,8 +1,16 @@
 var express = require('express');
-var ExpressLiveResource = require('./express-liveresource').ExpressLiveResource;
+var ExpressLiveResource = require('../common/server/express-liveresource').ExpressLiveResource;
+
+// setup server
 
 var app = express();
+var server = app.listen(3000, function () {
+    console.log('Listening on port %d', server.address().port);
+});
 var liveresource = new ExpressLiveResource(app);
+liveresource.listenWebSocket(server);
+
+// in-memory counter data
 
 var counters = {};
 
@@ -24,26 +32,13 @@ var incCounter = function (id) {
     return value;
 };
 
-app.get('/', function (req, res) {
-    res.sendfile('index.html');
-});
+// front-end files
 
-app.get(/^\/(.*\.js)$/, function (req, res) {
-    if (req.params[0].indexOf('..') != -1) {
-        res.send(403, 'Forbidden');
-        return;
-    }
+app.get('/', express.static(__dirname));
+app.get('/liveresource.js', express.static(__dirname + '/../..'));
+app.get(/^\/.*\.js$/, express.static(__dirname + '/../common/client'));
 
-    var fileName = req.params[0];
-    var root = null;
-    if (fileName == 'liveresource.js') {
-        root = '../..';
-    } else {
-        root = '../common/client';
-    }
-
-    res.sendfile(fileName, {root: root});
-});
+// counter api
 
 app.head('/counter/:id/', function (req, res) {
     var value = getCounter(req.params.id);
@@ -58,7 +53,7 @@ app.get('/counter/:id/', function (req, res) {
 
     var inm = req.get('If-None-Match');
     if (inm == etag) {
-        res.send(304);
+        res.status(304).end();
     } else {
         res.status(200).json(value);
     }
@@ -69,8 +64,3 @@ app.post('/counter/:id/', function (req, res) {
     liveresource.updated(req.url);
     res.send('Ok\n');
 });
-
-var server = app.listen(3000, function () {
-    console.log('Listening on port %d', server.address().port);
-});
-liveresource.listenWebSocket(server);
