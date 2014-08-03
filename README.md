@@ -34,7 +34,7 @@ resource.on('value', function (data) {
 });
 ```
 
-What the above code will do is make a GET request to the specified resource URI to retrieve its value and to discover if it supports live updates. The `value` callback will be triggered once the initial value has been received. If the resource supports live updates, then the LiveResource library will begin listening for updates and trigger the `value` callback again whenever the resource changes. If the resource does not support live updates, then `value` will be emitted only once. Think of it like a fancy AJAX request, with automatic realtime updates capability.
+What the above code will do is make a GET request to the specified resource URI to retrieve its value and to discover if it supports live updates. The `value` callback will be triggered once the initial value has been received. If the resource supports live updates, then the LiveResource library will begin listening for updates and trigger the `value` callback again whenever the resource changes. If the resource does not support live updates, then `value` will be emitted only once. Think of this code like a fancy AJAX request, with automatic realtime updates capability.
 
 LiveResource uses WebSockets and HTTP long-polling to receive updates in realtime. It differs from other realtime solutions by providing an interface modeled around synchronization rather than messaging or sockets. LiveResource is designed first and foremost as an open protocol, to enable the possibility of many compatible client and server implementations. There is no official LiveResource server. Rather, any server application can be modified to speak the LiveResource protocol in order to be compatible with clients.
 
