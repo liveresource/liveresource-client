@@ -25,7 +25,7 @@ Dependencies
 Usage
 -----
 
-We all work with resources when developing web applications. What if we had a nice way to know when they change?
+We all work with web resources. What if we had a nice way to know when they change?
 
 ```javascript
 var resource = new LiveResource('http://example.com/path/to/object');
@@ -34,21 +34,18 @@ resource.on('value', function (data) {
 });
 ```
 
-What this will do is make a GET request to the specified resource URI to retrieve its value and to discover if the resource supports live updates (indicated via HTTP response headers). The `value` callback will be triggered once the initial value has been received. If the resource supports live updates, then the LiveResource library will begin listening for updates in the background and trigger the `value` callback again whenever the resource changes. If the resource does not support live updates, then `value` will be emitted only once.
+What the above code will do is make a GET request to the specified resource URI to retrieve its value and to discover if it supports live updates. The `value` callback will be triggered once the initial value has been received. If the resource supports live updates, then the LiveResource library will begin listening for updates and trigger the `value` callback again whenever the resource changes. If the resource does not support live updates, then `value` will be emitted only once. Think of it like a fancy AJAX request, with automatic realtime updates capability.
 
 LiveResource uses WebSockets and HTTP long-polling to receive updates in realtime. It differs from other realtime solutions by providing an interface modeled around synchronization rather than messaging or sockets. LiveResource is designed first and foremost as an open protocol, to enable the possibility of many compatible client and server implementations. There is no official LiveResource server. Rather, any server application can be modified to speak the LiveResource protocol in order to be compatible with clients.
 
 Server
 ------
 
-Supporting live updates on the server is designed to be easy. If you're using Node.js and Express, you can use the `express-liveresource` package. Otherwise, you can look for other libraries or implement the protocol directly (see the Protocol section).
+Supporting live updates on the server is designed to be easy. If you're using Node.js and Express, you can use the `express-liveresource` package to realtimify your REST endpoints in just a few lines of code. Otherwise, you can look for other libraries or implement the protocol directly (see the Protocol section).
 
-For example, to enable live updates of an object resource, make sure the resource supports ETags:
+For example, to enable live updates of an object resource, first make sure the resource supports ETags:
 
 ```javascript
-var ExpressLiveResource = require('express-liveresource').ExpressLiveResource;
-var liveResource = new ExpressLiveResource(app);
-
 app.get('/path/to/object', function (req, res) {
     var value = ... object value ...
     var etag = '"' + ... object hash ... + '"';
@@ -61,6 +58,13 @@ app.get('/path/to/object', function (req, res) {
         res.status(200).json(value);
     }
 });
+```
+
+Initialize the LiveResource subsystem as part of your server startup:
+
+```javascript
+var ExpressLiveResource = require('express-liveresource').ExpressLiveResource;
+var liveResource = new ExpressLiveResource(app);
 ```
 
 Then, whenever the object has been updated, call:
