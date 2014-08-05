@@ -34,14 +34,16 @@ resource.on('value', function (data) {
 });
 ```
 
-What the above code will do is make a GET request to the specified resource URI to retrieve its value and to discover if it supports live updates. The `value` callback will be triggered once the initial value has been received. If the resource supports live updates, then the LiveResource library will begin listening for updates and trigger the `value` callback again whenever the resource changes. If the resource does not support live updates, then `value` will be emitted only once. Think of this code like a fancy AJAX request, with automatic realtime updates capability.
+The above code will make a GET request to the specified resource URI to retrieve its value and to discover if it supports live updates. The `value` callback will be triggered once the initial value has been received. If the resource supports live updates, then the LiveResource library will begin listening for updates and trigger the `value` callback again whenever the resource changes. If the resource does not support live updates, then `value` will be emitted only once. Think of this code like a fancy AJAX request, with automatic realtime updates capability.
 
-LiveResource uses WebSockets and HTTP long-polling to receive updates in realtime. It differs from other realtime solutions by providing an interface modeled around synchronization rather than messaging or sockets. LiveResource is designed first and foremost as an open protocol, to enable the possibility of many compatible client and server implementations. There is no official LiveResource server. Rather, any server application can be modified to speak the LiveResource protocol in order to be compatible with clients.
+LiveResource uses WebSockets and HTTP long-polling to receive updates in realtime. It differs from other realtime solutions by providing an interface modeled around synchronization rather than messaging or sockets.
 
 Server
 ------
 
-Supporting live updates on the server is designed to be easy. If you're using Node.js and Express, you can use the `express-liveresource` package to realtimify your REST endpoints in just a few lines of code. Otherwise, you can look for other libraries or implement the protocol directly (see the Protocol section).
+There is no official LiveResource server. Rather, any server application can be modified to speak the LiveResource protocol in order to be compatible with clients.
+
+If you're using Node.js and Express, you can use the `express-liveresource` package to easily realtimify your REST endpoints in just a few lines of code. Otherwise, you can look for other libraries or implement the protocol directly (see the Protocol section).
 
 For example, to enable live updates of an object resource, first make sure the resource supports ETags:
 
@@ -73,10 +75,23 @@ Then, whenever the object has been updated, call:
 liveResource.updated('/path/to/object');
 ```
 
+Examples
+--------
+
+To run the simple counter example:
+
+```sh
+cd examples/counter
+npm i
+npm start
+```
+
+Then open a browser to http://localhost:3000/
+
 Protocol
 --------
 
-(Note: For full protocol details, see the the `protocol.md` file.)
+LiveResource is designed first and foremost as an open protocol, to enable the possibility of many compatible client and server implementations. For full protocol details, see the the `protocol.md` file.
 
 Resources indicate support for live updates via `Link` headers in their HTTP responses. The simplest live updates mechanism is HTTP long-polling, using a rel type of `value-wait`.
 
