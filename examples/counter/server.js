@@ -1,5 +1,5 @@
 var express = require('express');
-var ExpressLiveResource = require('../common/server/express-liveresource').ExpressLiveResource;
+var ExpressLiveResource = require('express-liveresource').ExpressLiveResource;
 
 // setup server
 

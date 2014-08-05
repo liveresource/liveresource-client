@@ -2,5 +2,8 @@
   "name": "counter",
   "description": "liveresource test app",
   "version": "0.0.1",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "express-liveresource": "0.1.x"
+  }
 }

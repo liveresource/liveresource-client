@@ -4,6 +4,8 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "express": "4.x",
+    "express-liveresource": "0.1.x",
     "body-parser": "1.5.2"
   }
 }
