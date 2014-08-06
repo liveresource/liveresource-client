@@ -6,82 +6,120 @@
     <script src="websockhop-0.1.0.js"></script>
     <script src="liveresource.js"></script>
 
-    <script type="text/javascript">
-      {% if user %}var appendLog = function(s) {
-        var log = document.getElementById('chat-log');
-        log.innerHTML += s + '<br>\n';
+    <style>
+      input#nick-input {
+        width: 400px;
+      }
 
-        if(log.scrollTop + log.clientHeight + 50 > log.scrollHeight)
-          log.scrollTop = log.scrollHeight;
+      input#chat-input {
+        width: 600px;
+      }
+
+      div#chat-elements {
+        display: none;
+      }
+
+      div#chat-log {
+        display: block;
+        width: 600px;
+        height: 300px;
+        overflow: auto;
+        border: 2px solid black;
+      }
+    </style>
+
+    <script type="text/javascript">
+      var scrollToBottom = function (e) {
+        e.scrollTop = e.scrollHeight;
+      }
+
+      var tryScrollToBottom = function (e, threshold) {
+        if(e.scrollTop + e.clientHeight + threshold > e.scrollHeight)
+          e.scrollTop = e.scrollHeight;
+      }
+
+      var appendLog = function (s) {
+        var log = $('#chat-log');
+        log.append(s + '<br>');
+        tryScrollToBottom(log, 50);
       };
 
-      $(function() {
-        var baseUri = '/chat/{{ room }}';
-
-        $('#send-button').click(function() {
-          var body = $('#chat-input').val();
-
-          $('#chat-input').attr('disabled', 'true');
-          $('#send-button').attr('disabled', 'true');
-          $('#send-button').text('Sending...');
-          $.post(baseUri + '/send/', { nick: '{{ user }}', body: body }, function() {
-            $('#chat-input').val('');
-            $('#send-button').text('Send');
-            $('#chat-input').removeAttr('disabled');
-            $('#send-button').removeAttr('disabled');
-          });
-          return false;
-        });
-
-        appendLog('*** connecting');
-
-        var chatlog = new LiveResource.Resource(baseUri + '/items/');
-        chatlog.on('child-added', function(item) {
-          appendLog('<b>' + item.from + '</b>: ' + item.body);
-        });
-        chatlog.on('ready', function() {
-          // get past items
-          $.get(baseUri + '/items/?limit=200', function(items) {
-            s = '';
-            for(var n = items.length - 1; n >= 0; --n) {
-              msg = items[n];
-              s += '<b>' + msg.from + '</b>: ' + msg.body + '<br>\n';
-            }
-
-            var log = document.getElementById('chat-log');
-            log.innerHTML += s;
-            log.scrollTop = log.scrollHeight;
-
-            appendLog('*** joined');
-          }, 'json');
-        });
-
-        $('#chat-input').focus();
-      });{% else %}$(function() {
-        var baseUri = '/chat/1';
-
-        $('#join-button').click(function() {
+      $(function () {
+        $('#join-button').click(function () {
           var nick = $('#nick-input').val();
-          window.location.href = baseUri + '/as/' + nick;
+
+          // switch from join view to chat view
+          $('#join-elements').hide();
+          $('#chat-elements').show();
+
+          var baseUri = '/chat/1';
+
+          $('#send-button').click(function () {
+            var text = $('#chat-input').val();
+
+            $('#chat-input').attr('disabled', 'true');
+            $('#send-button').attr('disabled', 'true');
+            $('#send-button').text('Sending...');
+            $('#join-elements').hide();
+            $.post(baseUri + '/message/', { from: nick, text: text }, function () {
+              $('#chat-input').val('');
+              $('#send-button').text('Send');
+              $('#chat-input').removeAttr('disabled');
+              $('#send-button').removeAttr('disabled');
+            });
+
+            return false;
+          });
+
+          appendLog('*** connecting');
+
+          var chatlog = new LiveResource(baseUri + '/message/');
+          chatlog.on('child-added', function (msg) {
+            appendLog('<b>' + msg.from + '</b>: ' + msg.text);
+          });
+          chatlog.on('ready', function () {
+            // get past messages
+            $.get(baseUri + '/message/?limit=200', function (msgs) {
+              s = '';
+              for(var n = msgs.length - 1; n >= 0; --n) {
+                msg = msgs[n];
+                s += '<b>' + msg.from + '</b>: ' + msg.text + '<br>';
+              }
+
+              var log = $('#chat-log');
+              log.append(s);
+              scrollToBottom(log);
+
+              appendLog('*** joined');
+            }, 'json');
+          });
+
+          $('#chat-input').focus();
+
           return false;
         });
 
         $('#nick-input').focus();
-      });{% endif %}
+      });
     </script>
   </head>
 
   <body>
     <h1>Chat</h1>
 
-    {% if user %}<div id="chat-log" style="display: block; width: 600px; height: 300px; overflow: auto; border: 2px solid black;"></div>
-    <form id="send-form">
-      <input type="text" id="chat-input" style="width: 600px;"/>
-      <button id="send-button">Send</button>
-    </form>{% else %}<form id="join-form">
-      Nickname:
-      <input type="text" id="nick-input" style="width: 400px;"/>
-      <button id="join-button">Join</button>
-    </form>{% endif %}
+    <div id="join-elements">
+      <form id="join-form">
+        Nickname: <input type="text" id="nick-input" />
+        <button id="join-button">Join</button>
+      </form>
+    </div>
+
+    <div id="chat-elements">
+      <div id="chat-log"></div>
+      <form id="send-form">
+        <input type="text" id="chat-input" />
+        <button id="send-button">Send</button>
+      </form>
+    </div>
   </body>
 </html>
