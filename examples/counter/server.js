@@ -42,7 +42,8 @@ app.get(/^\/.*\.js$/, express.static(__dirname + '/../common/client'));
 
 app.head('/counter/:id/', function (req, res) {
     var value = getCounter(req.params.id);
-    res.set('ETag', '"' + value + '"');
+    var etag = '"' + value + '"';
+    res.set('ETag', etag);
     res.send('')
 });
 
