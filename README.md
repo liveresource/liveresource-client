@@ -110,7 +110,7 @@ Content-Type: application/json
 The `value-wait` link means that the client can perform a long-polling request for the object's value. This is done by supplying a `Wait` header in the request, along with `If-None-Match` to check against the object's ETag:
 
 ```
-GET /object HTTP/1.1
+GET /path/to/object HTTP/1.1
 If-None-Match: "b1946ac9"
 Wait: 60
 ```
