@@ -1,11 +1,6 @@
 LiveResource
 ============
-Date: June 6th, 2014
-
-Authors:
-  * Justin Karneges <justin@fanout.io>
-  * Katsuyuki Ohmuro <harmony7@pex2.jp>
-
+Authors: Justin Karneges <justin@fanout.io>, Katsuyuki Ohmuro <harmony7@pex2.jp>  
 Mailing List: http://lists.fanout.io/listinfo.cgi/fanout-users-fanout.io
 
 LiveResource is a JavaScript library and protocol specification for receiving live updates of RESTful resources.
@@ -99,7 +94,6 @@ For example, suppose a client fetches a resource:
 
 ```
 GET /path/to/object HTTP/1.1
-...
 ```
 
 The server can indicate support for live updates by including a `Link` header in the response:
@@ -108,7 +102,9 @@ The server can indicate support for live updates by including a `Link` header in
 HTTP/1.1 200 OK
 ETag: "b1946ac9"
 Link: </path/to/object>; rel=value-wait
-...
+Content-Type: application/json
+
+{"foo": "bar"}
 ```
 
 The `value-wait` link means that the client can perform a long-polling request for the object's value. This is done by supplying a `Wait` header in the request, along with `If-None-Match` to check against the object's ETag:
@@ -117,7 +113,6 @@ The `value-wait` link means that the client can perform a long-polling request f
 GET /object HTTP/1.1
 If-None-Match: "b1946ac9"
 Wait: 60
-...
 ```
 
 If the data changes while the request is open, then the new data is returned immediately:
@@ -126,7 +121,9 @@ If the data changes while the request is open, then the new data is returned imm
 HTTP/1.1 200 OK
 ETag: "2492d234"
 Link: </path/to/object>; rel=value-wait
-...
+Content-Type: application/json
+
+{"foo": "baz"}
 ```
 
 If the data does not change for the duration of time specified in the `Wait` header, then a 304 is eventually returned:
