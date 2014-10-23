@@ -517,6 +517,8 @@
             }
         };
 
+        connection.socket.formatter = new WebSockHop.JsonFormatter();
+
         connection.socket.on("opened", function() {
             connection.socket.on("message", function(data) {
 
