@@ -436,7 +436,7 @@
 
         for (var i = 0; i < resource.owners.length; i++) {
             var owner = resource.owners[i];
-            owner._events.trigger('value', owner, body);
+            owner.trigger('value', owner, body);
         }
 
     };
@@ -640,9 +640,9 @@
 
                 for (var n = 0; n < result.length; ++n) {
                     if (result[n].deleted) {
-                        owner._events.trigger('child-deleted', owner, result[n]);
+                        owner.trigger('child-deleted', owner, result[n]);
                     } else {
-                        owner._events.trigger('child-added', owner, result[n]);
+                        owner.trigger('child-added', owner, result[n]);
                     }
                 }
             }
@@ -854,22 +854,41 @@
 
     var engine = new Engine();
 
-    var LiveResource = function (uri) {
-        if (!(this instanceof LiveResource)) {
+    var ResourceHandler = function (uri) {
+        if (!(this instanceof ResourceHandler)) {
             throw new window.Error("Constructor called as a function");
         }
-
-        this._events = new Events();
-        this._uri = toAbsoluteUri(window.location.href, uri);
+        this._uri = uri;
         this._started = false;
         this._etag = null;
         this._valueWaitUri = null;
         this._changesWaitUri = null;
         this._multiplexWsUri = null;
-    };
-    LiveResource.prototype.on = function (type, handler) {
-        this._events.on(type, handler);
 
+        this._liveResources = [];
+    };
+    ResourceHandler._resources = {};
+    ResourceHandler.get = function(uri) {
+        if (!(uri in this._resources)) {
+            this._resources[uri] = new ResourceHandler(uri);
+        }
+        return this._resources[uri];
+    };
+    ResourceHandler.prototype.addLiveResource = function(liveResource) {
+        this._liveResources.push(liveResource);
+    };
+    ResourceHandler.prototype.removeLiveResource = function(liveResource) {
+        removeFromArray(this._liveResources, liveResource);
+    };
+    ResourceHandler.prototype.trigger = function() {
+        var args = copyArray(arguments);
+        var count = this._liveResources.length;
+        for(var i = 0; i < count; i++) {
+            var liveResource = this._liveResources[i];
+            liveResource._events.trigger.apply(liveResource._events, args);
+        }
+    };
+    ResourceHandler.prototype.addEvent = function(type) {
         if(type == 'value' || type == 'removed') {
             var self = this;
 
@@ -923,20 +942,16 @@
                 if(code >= 200 && code < 400) {
                     // 304 if not changed, don't trigger value
                     if (code < 300) {
-                        self._events.trigger('value', self, result);
+                        self.trigger('value', self, result);
                     }
                     if (self._etag) {
                         engine.addObjectResource(self, self._uri, self._etag, self._valueWaitUri, multiplexWaitUri, self._multiplexWsUri);
-                        if (!this._started) {
-                            this._started = true;
-                            self._events.trigger('ready', self);
-                        }
                     }
                     request = null;
                 } else if(code >= 400) {
                     if (code == 404) {
                         if (this._started) {
-                            self._events.trigger('removed', self);
+                            self.trigger('removed', self);
                         }
                         request = null;
                     } else {
@@ -978,9 +993,9 @@
                     if (code < 300) {
                         for (var n = 0; n < result.length; ++n) {
                             if (result[n].deleted) {
-                                self._events.trigger('child-deleted', self, result[n]);
+                                self.trigger('child-deleted', self, result[n]);
                             } else {
-                                self._events.trigger('child-added', self, result[n]);
+                                self.trigger('child-added', self, result[n]);
                             }
                         }
                     }
@@ -988,7 +1003,7 @@
                         engine.addCollectionResource(self, self._uri, self._changesWaitUri);
                         if (!self._started) {
                             self._started = true;
-                            self._events.trigger('ready', self);
+                            self.trigger('ready', self);
                         }
                         request = null;
                     } else {
@@ -1000,6 +1015,22 @@
             });
             request.start('HEAD', this._uri);
         }
+    };
+
+    var LiveResource = function (uri) {
+        if (!(this instanceof LiveResource)) {
+            throw new window.Error("Constructor called as a function");
+        }
+
+        this._events = new Events();
+
+        var absoluteUri = toAbsoluteUri(window.location.href, uri);
+        this._resourceHandler = ResourceHandler.get(absoluteUri);
+        this._resourceHandler.addLiveResource(this);
+    };
+    LiveResource.prototype.on = function (type, handler) {
+        this._events.on(type, handler);
+        this._resourceHandler.addEvent(type);
     };
     LiveResource.prototype.off = function (type, handler) {
         var args = copyArray(arguments, 1);
