@@ -1,6 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var ExpressLiveResource = require('express-liveresource').ExpressLiveResource;
+var path = require('path');
 
 // setup server
 
@@ -48,7 +49,10 @@ var roomGetMessagesBefore = function (room, pos, limit) {
 // front-end files
 
 app.get('/', express.static(__dirname));
-app.get('/liveresource.js', express.static(__dirname + '/../..'));
+app.get('/liveresource.js', function(req, res) {
+    var filePath = path.resolve(__dirname + '/../../build/output/liveresource-latest.js');
+    res.sendfile(filePath);
+});
 app.get(/^\/.*\.js$/, express.static(__dirname + '/../common/client'));
 
 // chat api

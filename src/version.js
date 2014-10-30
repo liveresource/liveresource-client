@@ -1,0 +1,1 @@
+extensions.version = "##VERSION##";
