@@ -113,5 +113,5 @@ module.exports = function(grunt) {
     });
 
     // Default task.
-    grunt.registerTask('default', ['clean', 'build']);
+    grunt.registerTask('default', ['clean', 'build', 'dist']);
 };
