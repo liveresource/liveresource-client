@@ -1,41 +1,3 @@
-
-
-
-
-
-
-
-var Events = function () {
-    this._events = {};
-};
-Events.prototype._getHandlersForType = function (type) {
-    if (!(type in this._events)) {
-        this._events[type] = [];
-    }
-    return this._events[type];
-};
-Events.prototype.on = function (type, handler) {
-    var handlers = this._getHandlersForType(type);
-    handlers.push(handler);
-};
-Events.prototype.off = function (type) {
-    if (arguments.length > 1) {
-        var handler = arguments[1];
-        var handlers = this._getHandlersForType(type);
-        utils.removeFromArray(handlers, handler);
-    } else {
-        delete this._events[type];
-    }
-};
-Events.prototype.trigger = function (type, obj) {
-    var args = utils.copyArray(arguments, 2);
-    var handlers = utils.copyArray(this._getHandlersForType(type));
-    for (var i = 0, n = handlers.length; i < n; i++) {
-        var handler = handlers[i];
-        handler.apply(obj, args);
-    }
-};
-
 // Takes an object and a predicate.
 // Iterates all keys directly defined on the object
 // (not through prototype chain) and calls predicate
@@ -96,142 +58,6 @@ var mapWebSocketUrlToHttpUrl = function(url) {
     }
 
     return converted;
-};
-
-// TODO: REFACTOR THIS
-// ** PARSE LINK HEADER **
-// returns object with structure:
-//   { reltype1: { href: url, otherparam1: val }, reltype2: { ... } }
-// or return null if parse fails
-var parseLinkHeader = function (header) {
-    if (header.length == 0)
-        return null;
-
-    var links = {};
-
-    var at = 0;
-    var readLink = true;
-    while (readLink) {
-        // skip ahead to next non-space char
-        for (; at < header.length; ++at) {
-            if (header[at] != ' ')
-                break;
-        }
-        if (at >= header.length || header[at] != '<')
-            return null;
-
-        var start = at + 1;
-        var end = header.indexOf('>', at);
-        if (end == -1)
-            return null;
-
-        var url = header.substring(start, end);
-
-        at = end + 1;
-
-        readLink = false;
-        var readParams = false;
-        if (at < header.length) {
-            if (header[at] == ',') {
-                readLink = true;
-                ++at;
-            } else if (header[at] == ';') {
-                readParams = true;
-                ++at;
-            } else {
-                return null;
-            }
-        }
-
-        var rel = null;
-        var params = {};
-        while (readParams) {
-            // skip ahead to next non-space char
-            for (; at < header.length; ++at) {
-                if (header[at] != ' ')
-                    break;
-            }
-            if (at >= header.length)
-                return null;
-
-            start = at;
-
-            // find end of param name
-            for (; at < header.length; ++at) {
-                if (header[at] == '=' || header[at] == ',' || header[at] == ';')
-                    break;
-            }
-            end = at;
-
-            var name = header.substring(start, end);
-            var val = null;
-
-            if (at < header.length && header[at] == '=') {
-                // read value
-                ++at;
-                if(at < header.length && header[at] == '\"') {
-                    start = at + 1;
-
-                    // find end of quoted param value
-                    at = header.indexOf('\"', start);
-                    if (at == -1)
-                        return null;
-                    end = at;
-
-                    val = header.substring(start, end);
-
-                    ++at;
-                } else {
-                    start = at;
-
-                    // find end of param value
-                    for (; at < header.length; ++at) {
-                        if (header[at] == ',' || header[at] == ';')
-                            break;
-                    }
-                    end = at;
-
-                    val = header.substring(start, end);
-                }
-            }
-
-            readParams = false;
-            if (at < header.length) {
-                if (header[at] == ',') {
-                    readLink = true;
-                    ++at;
-                } else if (header[at] == ';') {
-                    readParams = true;
-                    ++at;
-                } else {
-                    return null;
-                }
-            }
-
-            if (name == 'rel')
-                rel = val;
-            else
-                params[name] = val;
-        }
-
-        if (rel) {
-            var rels = rel.split(' ');
-            for (var i = 0; i < rels.length; ++i) {
-                debug.info('link: url=[' + url + '], rel=[' + rels[i] + ']');
-                var link = {};
-                link.rel = rels[i];
-                link.href = url;
-                for (var paramName in params) {
-                    if (!params.hasOwnProperty(paramName))
-                        continue;
-                    link[paramName] = params[paramName];
-                }
-                links[link.rel] = link;
-            }
-        }
-    }
-
-    return links;
 };
 
 var nextUpdate = function(predicate, ctx) {
@@ -498,7 +324,7 @@ Engine.prototype._onFinishedChangesWait = function (poll, code, result, headers)
 
             var lkey = key.toLowerCase();
             if (lkey == 'link') {
-                var links = parseLinkHeader(header);
+                var links = utils.parseLinkHeader(header);
                 if (links && links['changes-wait']) {
                     poll.res.changesWaitUri = links['changes-wait']['href'];
                     return false;
@@ -778,7 +604,7 @@ ResourceHandler.prototype.addEvent = function(type) {
                 if (lkey == 'etag') {
                     etag = header;
                 } else if (lkey == 'link') {
-                    var links = parseLinkHeader(header);
+                    var links = utils.parseLinkHeader(header);
                     if (links && links['value-wait']) {
                         valueWaitUri = utils.toAbsoluteUri(self._uri, links['value-wait']['href']);
                     }
@@ -847,7 +673,7 @@ ResourceHandler.prototype.addEvent = function(type) {
 
                 var lkey = key.toLowerCase();
                 if (lkey == 'link') {
-                    var links = parseLinkHeader(header);
+                    var links = utils.parseLinkHeader(header);
                     if (links && links['changes-wait']) {
                         changesWaitUri = links['changes-wait']['href'];
                     }
