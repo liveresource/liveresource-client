@@ -11,4 +11,5 @@
     }
     window['LiveResource'] = factory(window, window['WebSockHop']);
 }(function(window, WebSockHop) {
+    var exports = {};
     var extensions = {};
