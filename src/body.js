@@ -1,71 +1,3 @@
-// Takes an object and a predicate.
-// Iterates all keys directly defined on the object
-// (not through prototype chain) and calls predicate
-// with key and value. Also, if predicate returns false,
-// break out of the loop.
-var forEachOwnKeyValue = function(obj, predicate, ctx) {
-    for(var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            var result = predicate.call(ctx || this, key, obj[key]);
-            if (typeof(result) != 'undefined' && !result) {
-                break;
-            }
-        }
-    }
-};
-
-var getOrCreateKey = function(obj, key, defaultValue) {
-    if (!(key in obj)) {
-        obj[key] = defaultValue;
-    }
-    return obj[key];
-};
-
-var beginsWith = function(str, find) {
-    return str.substring(0, find.length) == find;
-};
-var replaceStart = function(str, find, replace) {
-    return replace + str.substring(find.length);
-};
-
-var mapHttpUrlToWebSocketUrl = function(uri) {
-    var absoluteUri = utils.toAbsoluteUri(window.location.href, uri);
-
-    var converted = absoluteUri;
-    if (beginsWith(absoluteUri, "http://")) {
-        converted = replaceStart(absoluteUri, "http://", "ws://");
-    } else if (beginsWith(absoluteUri, "https://")) {
-        converted = replaceStart(absoluteUri, "https://", "wss://");
-    }
-
-    if (!beginsWith(converted, "ws://") && !beginsWith(converted, "wss://")) {
-        throw "not valid";
-    }
-
-    return converted;
-};
-
-var mapWebSocketUrlToHttpUrl = function(url) {
-    var converted = url;
-    if (beginsWith(url, "ws://")) {
-        converted = replaceStart(url, "ws://", "http://");
-    } else if (beginsWith(url, "wss://")) {
-        converted = replaceStart(url, "wss://", "https://");
-    }
-
-    if (!beginsWith(converted, "http://") && !beginsWith(converted, "https://")) {
-        throw "not valid";
-    }
-
-    return converted;
-};
-
-var nextUpdate = function(predicate, ctx) {
-    return window.setTimeout(function() {
-        predicate.apply(ctx);
-    }, 0);
-};
-
 var Engine = function () {
     this._resources = {};
     this._timer = null;
@@ -80,15 +12,15 @@ Engine.prototype._getPreferredEndpointsForResources = function(resources) {
     var multiplexWaitEndpoints = {};
     var changeWaitPolls = {};
 
-    forEachOwnKeyValue(resources, function(resUri, res) {
+    utils.forEachOwnKeyValue(resources, function(resUri, res) {
         if (res.changesWaitUri) {
             changeWaitPolls[res.changesWaitUri] = res;
         } else {
             if (res.multiplexWsUri) {
-                var endpoint = getOrCreateKey(multiplexWsEndpoints, res.multiplexWsUri, { items: [] });
+                var endpoint = utils.getOrCreateKey(multiplexWsEndpoints, res.multiplexWsUri, { items: [] });
                 endpoint.items.push(res);
             } else if (res.multiplexWaitUri) {
-                var endpoint = getOrCreateKey(multiplexWaitEndpoints, res.multiplexWaitUri, { items: [] });
+                var endpoint = utils.getOrCreateKey(multiplexWaitEndpoints, res.multiplexWaitUri, { items: [] });
                 endpoint.items.push(res);
             } else {
                 valueWaitEndpoints[res.valueWaitUri] = res;
@@ -103,20 +35,20 @@ Engine.prototype._getPreferredEndpointsForResources = function(resources) {
         changesWaitEndpoints: {}
     };
 
-    forEachOwnKeyValue(multiplexWsEndpoints, function(endpointUri, endpoint) {
+    utils.forEachOwnKeyValue(multiplexWsEndpoints, function(endpointUri, endpoint) {
         result.multiplexWebsocketEndpoints[endpointUri] = { endpointUri: endpointUri, items: endpoint.items };
     });
-    forEachOwnKeyValue(multiplexWaitEndpoints, function(endpointUri, endpoint) {
+    utils.forEachOwnKeyValue(multiplexWaitEndpoints, function(endpointUri, endpoint) {
         if (endpoint.items.length > 1 || !endpoint.items[0].valueWaitUri) {
             result.multiplexWaitEndpoints[endpointUri] = { endpointUri: endpointUri, items: endpoint.items };
         } else {
             valueWaitEndpoints[endpoint.items[0].valueWaitUri] = endpoint.items[0];
         }
     });
-    forEachOwnKeyValue(valueWaitEndpoints, function(endpointUri, endpoint) {
+    utils.forEachOwnKeyValue(valueWaitEndpoints, function(endpointUri, endpoint) {
         result.valueWaitEndpoints[endpointUri] = { endpointUri: endpointUri, item: endpoint };
     });
-    forEachOwnKeyValue(changeWaitPolls, function(endpointUri, endpoint) {
+    utils.forEachOwnKeyValue(changeWaitPolls, function(endpointUri, endpoint) {
         result.changesWaitEndpoints[endpointUri] = { endpointUri: endpointUri, item: endpoint };
     });
 
@@ -124,7 +56,7 @@ Engine.prototype._getPreferredEndpointsForResources = function(resources) {
 };
 Engine.prototype.updateValueItem = function(resource, headers, body) {
 
-    forEachOwnKeyValue(headers, function(key, header) {
+    utils.forEachOwnKeyValue(headers, function(key, header) {
         var lowercaseKey = key.toLocaleLowerCase();
         if (lowercaseKey == 'etag') {
             resource.etag = header;
@@ -139,7 +71,7 @@ Engine.prototype.updateValueItem = function(resource, headers, body) {
 
 };
 Engine.prototype.updateValueItemMultiplex = function(resources, uri, headers, body) {
-    forEachOwnKeyValue(resources, function(resourceUri, resource) {
+    utils.forEachOwnKeyValue(resources, function(resourceUri, resource) {
         if (resourceUri == uri) {
 
             this.updateValueItem(resource, headers, body);
@@ -179,7 +111,7 @@ Engine.prototype._createMultiplexWebsocketConnection = function(endpointUri) {
         },
         mapToHttpUri: function(uri) {
             var absoluteUri = utils.toAbsoluteUri(this.uri, uri);
-            var httpUri = mapWebSocketUrlToHttpUrl(absoluteUri);
+            var httpUri = utils.mapWebSocketUrlToHttpUrl(absoluteUri);
             return httpUri;
         },
         checkSubscriptions: function(items) {
@@ -188,7 +120,7 @@ Engine.prototype._createMultiplexWebsocketConnection = function(endpointUri) {
             debug.info("Multiplex Ws Request URI: " + endpointUri);
 
             var subscribedItems = {};
-            forEachOwnKeyValue(this.subscribedItems, function(uri, value) {
+            utils.forEachOwnKeyValue(this.subscribedItems, function(uri, value) {
                 subscribedItems[uri] = value;
             });
 
@@ -201,7 +133,7 @@ Engine.prototype._createMultiplexWebsocketConnection = function(endpointUri) {
                 }
             }
 
-            forEachOwnKeyValue(subscribedItems, function(uri) {
+            utils.forEachOwnKeyValue(subscribedItems, function(uri) {
                 this.unsubscribe(uri);
             });
 
@@ -222,7 +154,7 @@ Engine.prototype._createMultiplexWebsocketConnection = function(endpointUri) {
 
             var uri = data.uri;
             var absoluteUri = utils.toAbsoluteUri(endpointUri, uri);
-            var httpUri = mapWebSocketUrlToHttpUrl(absoluteUri);
+            var httpUri = utils.mapWebSocketUrlToHttpUrl(absoluteUri);
 
             _this.updateValueItemMultiplex(_this._resources, httpUri, data.headers, data.body);
 
@@ -288,7 +220,7 @@ Engine.prototype._onFinishedMultiplexWait = function(poll, code, result, headers
 
     if (code >= 200 && code < 300) {
 
-        forEachOwnKeyValue(result, function (uri, item) {
+        utils.forEachOwnKeyValue(result, function (uri, item) {
 
             debug.info('got data for uri: ' + uri);
 
@@ -320,7 +252,7 @@ Engine.prototype._onFinishedChangesWait = function (poll, code, result, headers)
 
     if (code >= 200 && code < 300) {
 
-        forEachOwnKeyValue(headers, function(key, header) {
+        utils.forEachOwnKeyValue(headers, function(key, header) {
 
             var lkey = key.toLowerCase();
             if (lkey == 'link') {
@@ -351,7 +283,7 @@ Engine.prototype._onFinishedChangesWait = function (poll, code, result, headers)
 
 Engine.prototype._update = function () {
     if (!this._timer) {
-        this._timer = nextUpdate(function () {
+        this._timer = utils.nextUpdate(function () {
 
             this._timer = null;
             var _this = this;
@@ -366,13 +298,13 @@ Engine.prototype._update = function () {
 
                 // Keep track of list of new endpoints to enable
                 var newEndpoints = {};
-                forEachOwnKeyValue(preferredEndpointsMap, function(endpointUri, endpoint) {
+                utils.forEachOwnKeyValue(preferredEndpointsMap, function(endpointUri, endpoint) {
                     newEndpoints[endpointUri] = endpoint;
                 });
 
                 // Make a list of endpoints to disable...
                 var endpointsToDisable = [];
-                forEachOwnKeyValue(currentConnectionsMap, function(endpointUri, connection) {
+                utils.forEachOwnKeyValue(currentConnectionsMap, function(endpointUri, connection) {
                     // This item is already known, so remove endpoint from "new endpoints".
                     delete newEndpoints[endpointUri];
 
@@ -404,7 +336,7 @@ Engine.prototype._update = function () {
 
                 // Create new requests for endpoints that need them.
                 // They will be created with isActive set to false.
-                forEachOwnKeyValue(newEndpoints, function(endpointUri, endpoint) {
+                utils.forEachOwnKeyValue(newEndpoints, function(endpointUri, endpoint) {
                     debug.info("Adding '" + label + "' endpoint - '" + endpointUri + "'.");
                     var connection = newConnection(endpoint);
                     currentConnectionsMap[endpointUri] = connection;
@@ -412,7 +344,7 @@ Engine.prototype._update = function () {
 
                 // For any current endpoint, start them up if
                 // they are not currently marked as being isActive.
-                forEachOwnKeyValue(currentConnectionsMap, function(endpointUri, connection) {
+                utils.forEachOwnKeyValue(currentConnectionsMap, function(endpointUri, connection) {
                     var endpoint = preferredEndpointsMap[endpointUri];
                     refreshConnection(connection, endpoint);
                 });
@@ -598,7 +530,7 @@ ResourceHandler.prototype.addEvent = function(type) {
             var multiplexWaitUri = null;
             var multiplexWsUri = null;
 
-            forEachOwnKeyValue(headers, function(key, header) {
+            utils.forEachOwnKeyValue(headers, function(key, header) {
 
                 var lkey = key.toLowerCase();
                 if (lkey == 'etag') {
@@ -612,7 +544,7 @@ ResourceHandler.prototype.addEvent = function(type) {
                         multiplexWaitUri = utils.toAbsoluteUri(self._uri, links['multiplex-wait']['href']);
                     }
                     if (links && links['multiplex-ws']) {
-                        multiplexWsUri = mapHttpUrlToWebSocketUrl(utils.toAbsoluteUri(self._uri, links['multiplex-ws']['href']));
+                        multiplexWsUri = utils.mapHttpUrlToWebSocketUrl(utils.toAbsoluteUri(self._uri, links['multiplex-ws']['href']));
                     }
                 }
 
@@ -669,7 +601,7 @@ ResourceHandler.prototype.addEvent = function(type) {
 
             var changesWaitUri = null;
 
-            forEachOwnKeyValue(headers, function(key, header) {
+            utils.forEachOwnKeyValue(headers, function(key, header) {
 
                 var lkey = key.toLowerCase();
                 if (lkey == 'link') {

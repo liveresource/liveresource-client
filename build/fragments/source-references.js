@@ -3,6 +3,7 @@ sourceReferencesCallback([
     'src/debug.js',
     'src/utils.js',
     'src/utils.parseLinkHeader.js',
+    'src/utils.mapWebSocketUrls.js',
     'src/events.js',
     'src/body.js'
 ]);

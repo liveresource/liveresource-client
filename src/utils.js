@@ -85,7 +85,34 @@ var utils = (function() {
         copyArray: copyArray,
         findInArray: findInArray,
         removeFromArray: removeFromArray,
-        toAbsoluteUri: absolutizeURI
+        toAbsoluteUri: absolutizeURI,
+        forEachOwnKeyValue: function(obj, predicate, ctx) {
+            for(var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    var result = predicate.call(ctx || this, key, obj[key]);
+                    if (typeof(result) != 'undefined' && !result) {
+                        break;
+                    }
+                }
+            }
+        },
+        getOrCreateKey: function(obj, key, defaultValue) {
+            if (!(key in obj)) {
+                obj[key] = defaultValue;
+            }
+            return obj[key];
+        },
+        beginsWith: function(str, find) {
+            return str.substring(0, find.length) == find;
+        },
+        replaceStart: function(str, find, replace) {
+            return replace + str.substring(find.length);
+        },
+        nextUpdate: function(predicate, ctx) {
+            return window.setTimeout(function() {
+                predicate.apply(ctx);
+            }, 0);
+        }
     };
 }());
 
