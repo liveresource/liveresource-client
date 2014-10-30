@@ -1,5 +1,6 @@
 sourceReferencesCallback([
     'src/version.js',
+    'src/polyfills.js',
     'src/debug.js',
     'src/utils.js',
     'src/utils.parseLinkHeader.js',
