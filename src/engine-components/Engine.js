@@ -467,19 +467,19 @@ utils.extend(Engine.prototype, {
         }
         return this._resources[uri];
     },
-    addObjectResource: function (owner, uri, etag, valueWaitUri, multiplexWaitUri, multiplexWsUri) {
-        var res = this._getOrCreateResource(uri);
-        res.owners.push(owner);
-        res.etag = etag;
-        res.valueWaitUri = valueWaitUri;
-        res.multiplexWaitUri = multiplexWaitUri;
-        res.multiplexWsUri = multiplexWsUri;
+    addObjectResource: function (resourceHandler) {
+        var res = this._getOrCreateResource(resourceHandler.uri);
+        res.owners.push(resourceHandler);
+        res.etag = resourceHandler.valueAspect.etag;
+        res.valueWaitUri = resourceHandler.valueAspect.valueWaitUri;
+        res.multiplexWaitUri = resourceHandler.valueAspect.multiplexWaitUri;
+        res.multiplexWsUri = resourceHandler.valueAspect.multiplexWsUri;
         this._update();
     },
-    addCollectionResource: function (owner, uri, changesWaitUri) {
-        var res = this._getOrCreateResource(uri);
-        res.owners.push(owner);
-        res.changesWaitUri = changesWaitUri;
+    addCollectionResource: function (resourceHandler) {
+        var res = this._getOrCreateResource(resourceHandler.uri);
+        res.owners.push(resourceHandler);
+        res.changesWaitUri = resourceHandler.changesAspect.changesWaitUri;
         this._update();
     }
 });

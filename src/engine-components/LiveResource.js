@@ -6,7 +6,7 @@ var LiveResource = function (uri) {
     this._events = new Events();
 
     var absoluteUri = utils.toAbsoluteUri(window.location.href, uri);
-    this._resourceHandler = ResourceHandler.get(absoluteUri);
+    this._resourceHandler = ResourceHandler.getHandlerForUri(absoluteUri);
     this._resourceHandler.addLiveResource(this);
 };
 
@@ -19,5 +19,12 @@ utils.extend(LiveResource.prototype, {
         var args = utils.copyArray(arguments, 1);
         args.unshift(type);
         this._events.off.apply(this._events, args);
+    },
+    cancel: function() {
+        this._events = null;
+        if (this._resourceHandler != null) {
+            this._resourceHandler.removeLiveResource(this);
+            this._resourceHandler = null;
+        }
     }
 });

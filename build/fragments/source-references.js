@@ -6,6 +6,8 @@ sourceReferencesCallback([
     'src/utils.parseLinkHeader.js',
     'src/utils.mapWebSocketUrls.js',
     'src/engine-components/Events.js',
+    'src/engine-components/ValueAspect.js',
+    'src/engine-components/ChangesAspect.js',
     'src/engine-components/Engine.js',
     'src/engine-components/ResourceHandler.js',
     'src/engine-components/LiveResource.js',
