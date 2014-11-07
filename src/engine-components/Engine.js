@@ -13,7 +13,7 @@ var Engine = function () {
 utils.extend(Engine.prototype, {
     _getPreferredEndpointsForResources: function(resources) {
         var valueWaitEndpoints = {};
-        var multiplexWsEndpoints = {};
+        var multiplexWebSocketEndpoints = {};
         var multiplexWaitEndpoints = {};
         var changeWaitPolls = {};
 
@@ -22,11 +22,11 @@ utils.extend(Engine.prototype, {
                 changeWaitPolls[res.changesWaitUri] = res;
             } else {
                 if (res.multiplexWsUri) {
-                    var endpoint = utils.getOrCreateKey(multiplexWsEndpoints, res.multiplexWsUri, { items: [] });
-                    endpoint.items.push(res);
+                    var multiplexWebSocketEndpoint = utils.getOrCreateKey(multiplexWebSocketEndpoints, res.multiplexWsUri, { items: [] });
+                    multiplexWebSocketEndpoint.items.push(res);
                 } else if (res.multiplexWaitUri) {
-                    var endpoint = utils.getOrCreateKey(multiplexWaitEndpoints, res.multiplexWaitUri, { items: [] });
-                    endpoint.items.push(res);
+                    var multiplexWaitEndpoint = utils.getOrCreateKey(multiplexWaitEndpoints, res.multiplexWaitUri, { items: [] });
+                    multiplexWaitEndpoint.items.push(res);
                 } else {
                     valueWaitEndpoints[res.valueWaitUri] = res;
                 }
@@ -35,13 +35,13 @@ utils.extend(Engine.prototype, {
 
         var result = {
             valueWaitEndpoints: {},
-            multiplexWebsocketEndpoints: {},
+            multiplexWebSocketEndpoints: {},
             multiplexWaitEndpoints: {},
             changesWaitEndpoints: {}
         };
 
-        utils.forEachOwnKeyValue(multiplexWsEndpoints, function(endpointUri, endpoint) {
-            result.multiplexWebsocketEndpoints[endpointUri] = { endpointUri: endpointUri, items: endpoint.items };
+        utils.forEachOwnKeyValue(multiplexWebSocketEndpoints, function(endpointUri, endpoint) {
+            result.multiplexWebSocketEndpoints[endpointUri] = { endpointUri: endpointUri, items: endpoint.items };
         });
         utils.forEachOwnKeyValue(multiplexWaitEndpoints, function(endpointUri, endpoint) {
             if (endpoint.items.length > 1 || !endpoint.items[0].valueWaitUri) {
@@ -84,7 +84,7 @@ utils.extend(Engine.prototype, {
             }
         }, this);
     },
-    _createMultiplexWebsocketConnection: function(endpointUri) {
+    _createMultiplexWebSocketConnection: function(endpointUri) {
         var _this = this;
         var connection = {
             uri: endpointUri,
@@ -116,8 +116,7 @@ utils.extend(Engine.prototype, {
             },
             mapToHttpUri: function(uri) {
                 var absoluteUri = utils.toAbsoluteUri(this.uri, uri);
-                var httpUri = utils.mapWebSocketUrlToHttpUrl(absoluteUri);
-                return httpUri;
+                return utils.mapWebSocketUrlToHttpUrl(absoluteUri);
             },
             checkSubscriptions: function(items) {
 
@@ -342,8 +341,7 @@ utils.extend(Engine.prototype, {
                     // They will be created with isActive set to false.
                     utils.forEachOwnKeyValue(newEndpoints, function(endpointUri, endpoint) {
                         debug.info("Adding '" + label + "' endpoint - '" + endpointUri + "'.");
-                        var connection = newConnection(endpoint);
-                        currentConnectionsMap[endpointUri] = connection;
+                        currentConnectionsMap[endpointUri] = newConnection(endpoint);
                     }, this);
 
                     // For any current endpoint, start them up if
@@ -359,12 +357,12 @@ utils.extend(Engine.prototype, {
                 adjustEndpoints(
                     "Multiplex WS",
                     this._multiplexWebSocketConnections,
-                    preferredEndpoints.multiplexWebsocketEndpoints,
+                    preferredEndpoints.multiplexWebSocketEndpoints,
                     function(endpoint, connection) {
                         return endpoint.items.length == 0;
                     },
                     function(connection) { connection.socket.abort(); },
-                    function(endpoint) { return _this._createMultiplexWebsocketConnection(endpoint.endpointUri); },
+                    function(endpoint) { return _this._createMultiplexWebSocketConnection(endpoint.endpointUri); },
                     function(connection, endpoint) {
                         if (connection.isConnected) {
                             connection.checkSubscriptions(endpoint.items);
@@ -399,18 +397,19 @@ utils.extend(Engine.prototype, {
                             removedOrChanged = true
                         } else {
                             var preferredEndpointItemUris = [];
-                            for (var i = 0; i < endpoint.items.length; i++) {
+                            var i;
+                            for (i = 0; i < endpoint.items.length; i++) {
                                 preferredEndpointItemUris.push(endpoint.items[i].uri);
                             }
                             preferredEndpointItemUris.sort();
 
                             var pollResourceItemUris = [];
-                            for (var i = 0; i < connection.resItems.length; i++) {
+                            for (i = 0; i < connection.resItems.length; i++) {
                                 pollResourceItemUris.push(connection.resItems[i].uri);
                             }
                             pollResourceItemUris.sort();
 
-                            for (var i = 0; i < preferredEndpointItemUris.length; i++) {
+                            for (i = 0; i < preferredEndpointItemUris.length; i++) {
                                 if (preferredEndpointItemUris[i] != pollResourceItemUris[i]) {
                                     removedOrChanged = true;
                                     break;

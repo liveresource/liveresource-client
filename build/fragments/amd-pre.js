@@ -1,7 +1,7 @@
 (function(factory) {
     var isWindow = function(variable) {
         return variable && variable.document && variable.location && variable.alert && variable.setInterval;
-    }
+    };
     if (!isWindow(window)) {
         throw "The current version of LiveResource may only be used within the context of a browser.";
     }
