@@ -25,6 +25,10 @@ var utils = (function() {
         return -1;
     };
 
+    var isInArray = function (array, item) {
+        return !(findInArray(array, item) < 0);
+    };
+
     var removeFromArray = function (array, item) {
         var again = true;
         while (again) {
@@ -84,6 +88,7 @@ var utils = (function() {
         extend: extend,
         copyArray: copyArray,
         findInArray: findInArray,
+        isInArray: isInArray,
         removeFromArray: removeFromArray,
         toAbsoluteUri: absolutizeURI,
         forEachOwnKeyValue: function(obj, predicate, ctx) {

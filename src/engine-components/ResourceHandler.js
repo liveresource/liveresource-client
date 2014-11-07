@@ -17,7 +17,9 @@ utils.extend(ResourceHandler, {
             this._resources[uri] = new ResourceHandler(uri);
         }
         return this._resources[uri];
-    }
+    },
+    valueEvents: ['value', 'removed'],
+    changesEvents: ['child-added', 'child-removed']
 });
 
 utils.extend(ResourceHandler.prototype, {
@@ -36,70 +38,75 @@ utils.extend(ResourceHandler.prototype, {
         }
     },
     addEvent: function(type) {
+        if(utils.isInArray(ResourceHandler.valueEvents, type)) {
+            this.addValueEvent();
+        } else if(utils.isInArray(ResourceHandler.changesEvents, type)) {
+            this.addChangesEvent()
+        } else {
+            throw "unknown event type";
+        }
+    },
+    addValueEvent: function() {
         var self = this;
+        var request = new Pollymer.Request();
+        request.on('finished', function(code, result, headers) {
 
-        if(type == 'value' || type == 'removed') {
+            self.valueAspect.updateFromHeaders(self.uri, headers);
 
-            var request = new Pollymer.Request();
-            request.on('finished', function(code, result, headers) {
-
-                self.valueAspect.updateFromHeaders(self.uri, headers);
-
-                if(code >= 200 && code < 400) {
-                    // 304 if not changed, don't trigger value
-                    if (code < 300) {
-                        self.trigger('value', self, result);
-                    }
-                    if (self.valueAspect.etag) {
-                        Engine.getSharedEngine().addObjectResource(self);
-                    } else {
-                        debug.info('no etag');
-                    }
-                    request = null;
-                } else if(code >= 400) {
-                    if (code == 404) {
-                        self.trigger('removed', self);
-                        request = null;
-                    } else {
-                        request.retry();
-                    }
+            if(code >= 200 && code < 400) {
+                // 304 if not changed, don't trigger value
+                if (code < 300) {
+                    self.trigger('value', self, result);
                 }
-            });
-            request.start('GET', this.uri);
-
-        } else if(type == 'child-added' || type == 'child-deleted') {
-
-            var request = new Pollymer.Request();
-            request.on('finished', function(code, result, headers) {
-
-                self.changesAspect.updateFromHeaders(self.uri, headers);
-
-                if(code >= 200 && code < 300) {
-                    // 304 if not changed, don't trigger changes
-                    if (code < 300) {
-                        for (var n = 0; n < result.length; ++n) {
-                            if (result[n].deleted) {
-                                self.trigger('child-deleted', self, result[n]);
-                            } else {
-                                self.trigger('child-added', self, result[n]);
-                            }
-                        }
-                    }
-                    if (self.changesAspect.changesWaitUri) {
-                        Engine.getSharedEngine().addCollectionResource(self);
-                        if (!self.changesAspect.started) {
-                            self.changesAspect.started = true;
-                            self.trigger('ready', self);
-                        }
-                        request = null;
-                    } else {
-                        debug.info('no changes-wait link');
-                    }
-                } else if (code >= 400) {
+                if (self.valueAspect.etag) {
+                    Engine.getSharedEngine().addObjectResource(self);
+                } else {
+                    debug.info('no etag');
+                }
+                request = null;
+            } else if(code >= 400) {
+                if (code == 404) {
+                    self.trigger('removed', self);
+                    request = null;
+                } else {
                     request.retry();
                 }
-            });
-            request.start('HEAD', this.uri);
-        }
+            }
+        });
+        request.start('GET', this.uri);
+    },
+    addChangesEvent: function() {
+        var self = this;
+        var request = new Pollymer.Request();
+        request.on('finished', function(code, result, headers) {
+
+            self.changesAspect.updateFromHeaders(self.uri, headers);
+
+            if(code >= 200 && code < 300) {
+                // 304 if not changed, don't trigger changes
+                if (code < 300) {
+                    for (var n = 0; n < result.length; ++n) {
+                        if (result[n].deleted) {
+                            self.trigger('child-deleted', self, result[n]);
+                        } else {
+                            self.trigger('child-added', self, result[n]);
+                        }
+                    }
+                }
+                if (self.changesAspect.changesWaitUri) {
+                    Engine.getSharedEngine().addCollectionResource(self);
+                    if (!self.changesAspect.started) {
+                        self.changesAspect.started = true;
+                        self.trigger('ready', self);
+                    }
+                    request = null;
+                } else {
+                    debug.info('no changes-wait link');
+                }
+            } else if (code >= 400) {
+                request.retry();
+            }
+        });
+        request.start('HEAD', this.uri);
     }
 });
