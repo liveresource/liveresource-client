@@ -13,6 +13,14 @@ app.use(bodyParser.urlencoded({extended: false}));
 var liveResource = new ExpressLiveResource(app);
 liveResource.listenWebSocket(server);
 
+app.use(function(req, res, next) {
+   if(req.url.substr(-1) != '/') {
+       res.redirect(301, req.url + '/');
+   } else {
+       next();
+   }
+});
+
 // in-memory chat data
 
 var rooms = {};

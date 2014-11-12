@@ -11,6 +11,14 @@ var server = app.listen(3000, function () {
 var liveResource = new ExpressLiveResource(app);
 liveResource.listenWebSocket(server);
 
+app.use(function(req, res, next) {
+   if(req.url.substr(-1) != '/') {
+       res.redirect(301, req.url + '/');
+   } else {
+       next();
+   }
+});
+
 // in-memory counter data
 
 var counters = {};
