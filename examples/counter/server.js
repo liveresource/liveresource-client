@@ -1,6 +1,7 @@
 var express = require('express');
 var ExpressLiveResource = require('express-liveresource').ExpressLiveResource;
 var path = require('path');
+var url = require('url');
 
 // setup server
 
@@ -12,8 +13,10 @@ var liveResource = new ExpressLiveResource(app);
 liveResource.listenWebSocket(server);
 
 app.use(function(req, res, next) {
-   if(req.url.substr(-1) != '/') {
-       res.redirect(301, req.url + '/');
+   u = url.parse(req.url)
+   if(u.pathname.substr(-3) != '.js' && u.pathname.substr(-1) != '/') {
+       u.pathname += '/';
+       res.redirect(301, url.format(u));
    } else {
        next();
    }
@@ -46,7 +49,7 @@ var incCounter = function (id) {
 app.get('/', express.static(__dirname));
 app.get('/liveresource.js', function(req, res) {
     var filePath = path.resolve(__dirname + '/../../build/output/liveresource-latest.js');
-    res.sendfile(filePath);
+    res.sendFile(filePath);
 });
 app.get(/^\/.*\.js$/, express.static(__dirname + '/../common/client'));
 
