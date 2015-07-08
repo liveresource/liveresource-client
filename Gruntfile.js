@@ -57,38 +57,43 @@ module.exports = function(grunt) {
             combinedSourceContents = flattenedSourceFilenames.map(function(filename) {
                 return grunt.file.read('./' + filename);
             });
-        combinedSourceContents.unshift('var DEBUG=' + (debug ? 'true' : 'false') + ';');
+        if (debug) {
+            combinedSourceContents.unshift('var DEBUG=true;');
+        }
         var combinedSources = combinedSourceContents.join('\n');
 
         return combinedSources.replace('##VERSION##', grunt.config('pkg.version'));
     }
 
-    function buildDebug(output) {
+    function buildOutput(contents) {
         var source = [];
         source.push(grunt.config('banner'));
         source.push('(function(){\n');
-        source.push(getCombinedSources(true));
+        source.push(contents);
         source.push('})();\n');
-        grunt.file.write(output, source.join('').replace(/\r\n/g, '\n'));
+        return source.join('').replace(/\r\n/g, '\n');
+    }
+
+    function buildDebug(output) {
+        grunt.file.write(output, buildOutput(getCombinedSources(true)));
     }
 
     function buildMin(output, done) {
-        var cc = require('closure-compiler');
+        var UglifyJs = require('uglify-js');
+
         var options = {
-            compilation_level: 'SIMPLE_OPTIMIZATIONS',
-            output_wrapper: '(function() {%output%})();'
+            fromString: true,
+            compress: {
+                global_defs: {
+                    DEBUG: false
+                }
+            }
         };
         grunt.log.write('Compiling...');
-        cc.compile('/**@const*/' + getCombinedSources(false), options, function (err, stdout, stderr) {
-            if (err) {
-                grunt.log.error(err);
-                done(false);
-            } else {
-                grunt.log.ok();
-                grunt.file.write(output, (grunt.config('banner') + stdout).replace(/\r\n/g, '\n'));
-                done(true);
-            }
-        });
+        var result = UglifyJs.minify(getCombinedSources(false), options);
+        grunt.log.ok();
+        grunt.file.write(output, buildOutput(result.code).replace(/\r\n/g, '\n'));
+        done(true);
     }
 
     grunt.registerMultiTask('build', 'Build', function() {
