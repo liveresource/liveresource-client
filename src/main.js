@@ -1,1 +1,1 @@
-exports = LiveResource;
+module.exports = require('./engine-components/LiveResource');

@@ -1,3 +1,9 @@
+var utils = require('../utils');
+var debug = require('console');
+
+var Events = require('./Events');
+var ResourceHandler = require('./ResourceHandler');
+
 var LiveResource = function (uri) {
     if (!(this instanceof LiveResource)) {
         throw new window.Error("Constructor called as a function");
@@ -28,3 +34,5 @@ utils.extend(LiveResource.prototype, {
         }
     }
 });
+
+module.exports = LiveResource;

@@ -1,3 +1,8 @@
+var utils = require('../utils');
+var debug = require('console');
+var mapWebSocketUrls = require('../utils.mapWebSocketUrls');
+var parseLinkHeader = require('../utils.parseLinkHeader');
+
 var ValueAspect = function() {
     if (!(this instanceof ValueAspect)) {
         throw new window.Error("Constructor called as a function");
@@ -21,7 +26,7 @@ utils.extend(ValueAspect.prototype, {
             if (k == 'etag') {
                 etag = header;
             } else if (k == 'link') {
-                var links = utils.parseLinkHeader(header);
+                var links = parseLinkHeader(header);
                 if (links && links['value-wait']) {
                     valueWaitUri = utils.toAbsoluteUri(baseUri, links['value-wait']['href']);
                 }
@@ -29,7 +34,7 @@ utils.extend(ValueAspect.prototype, {
                     multiplexWaitUri = utils.toAbsoluteUri(baseUri, links['multiplex-wait']['href']);
                 }
                 if (links && links['multiplex-ws']) {
-                    multiplexWsUri = utils.mapHttpUrlToWebSocketUrl(utils.toAbsoluteUri(baseUri, links['multiplex-ws']['href']));
+                    multiplexWsUri = mapWebSocketUrls.mapHttpUrlToWebSocketUrl(utils.toAbsoluteUri(baseUri, links['multiplex-ws']['href']));
                 }
             }
 
@@ -56,3 +61,5 @@ utils.extend(ValueAspect.prototype, {
         }        
     }
 });
+
+module.exports = ValueAspect;

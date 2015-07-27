@@ -16,7 +16,7 @@ liveResource.listenWebSocket(server);
 
 app.use(function(req, res, next) {
    u = url.parse(req.url)
-   if(u.pathname.substr(-3) != '.js' && u.pathname.substr(-1) != '/') {
+   if(u.pathname.substr(-3) != '.js' && u.pathname.substr(-4) != '.map' && u.pathname.substr(-1) != '/') {
        u.pathname += '/';
        res.redirect(301, url.format(u));
    } else {
@@ -62,6 +62,10 @@ var roomGetMessagesBefore = function (room, pos, limit) {
 app.get('/', express.static(__dirname));
 app.get('/liveresource.js', function(req, res) {
     var filePath = path.resolve(__dirname + '/../../build/output/liveresource-latest.js');
+    res.sendFile(filePath);
+});
+app.get('/liveresource-latest.js.map', function(req, res) {
+    var filePath = path.resolve(__dirname + '/../../build/output/liveresource-latest.js.map');
     res.sendFile(filePath);
 });
 app.get(/^\/.*\.js$/, express.static(__dirname + '/../common/client'));

@@ -1,3 +1,10 @@
+var utils = require('../utils');
+var debug = require('console');
+
+var Engine = require('./Engine');
+var ChangesAspect = require('./ChangesAspect');
+var ValueAspect = require('./ValueAspect');
+
 var ResourceHandler = function (uri) {
     if (!(this instanceof ResourceHandler)) {
         throw new window.Error("Constructor called as a function");
@@ -110,3 +117,5 @@ utils.extend(ResourceHandler.prototype, {
         request.start('HEAD', this.uri);
     }
 });
+
+module.exports = ResourceHandler;

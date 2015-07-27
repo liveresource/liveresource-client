@@ -1,3 +1,7 @@
+var utils = require('../utils');
+var debug = require('console');
+var mapWebSocketUrls = require('../utils.mapWebSocketUrls');
+
 var Engine = function () {
     if (!(this instanceof Engine)) {
         throw new window.Error("Constructor called as a function");
@@ -116,7 +120,7 @@ utils.extend(Engine.prototype, {
             },
             mapToHttpUri: function(uri) {
                 var absoluteUri = utils.toAbsoluteUri(this.uri, uri);
-                return utils.mapWebSocketUrlToHttpUrl(absoluteUri);
+                return mapWebSocketUrls.mapWebSocketUrlToHttpUrl(absoluteUri);
             },
             checkSubscriptions: function(items) {
 
@@ -158,7 +162,7 @@ utils.extend(Engine.prototype, {
 
                 var uri = data.uri;
                 var absoluteUri = utils.toAbsoluteUri(endpointUri, uri);
-                var httpUri = utils.mapWebSocketUrlToHttpUrl(absoluteUri);
+                var httpUri = mapWebSocketUrls.mapWebSocketUrlToHttpUrl(absoluteUri);
 
                 _this.updateValueItemMultiplex(_this._resources, httpUri, data.headers, data.body);
 
@@ -260,7 +264,7 @@ utils.extend(Engine.prototype, {
 
                 var lkey = key.toLowerCase();
                 if (lkey == 'link') {
-                    var links = utils.parseLinkHeader(header);
+                    var links = parseLinkHeader(header);
                     if (links && links['changes-wait']) {
                         poll.res.changesWaitUri = links['changes-wait']['href'];
                         return false;
@@ -492,3 +496,5 @@ utils.extend(Engine, {
         return this._engine;
     }
 });
+
+module.exports = Engine;

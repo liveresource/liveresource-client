@@ -1,4 +1,6 @@
-utils.extend(utils, {
+var utils = require('./utils');
+
+module.exports = {
     mapHttpUrlToWebSocketUrl: function(uri) {
         var absoluteUri = utils.toAbsoluteUri(window.location.href, uri);
 
@@ -29,4 +31,4 @@ utils.extend(utils, {
 
         return converted;
     }
-});
+};

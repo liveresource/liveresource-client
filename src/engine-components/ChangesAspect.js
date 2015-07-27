@@ -1,3 +1,7 @@
+var utils = require('../utils');
+var debug = require('console');
+var parseLinkHeader = require('../utils.parseLinkHeader');
+
 var ChangesAspect = function() {
     if (!(this instanceof ChangesAspect)) {
         throw new window.Error("Constructor called as a function");
@@ -14,7 +18,7 @@ utils.extend(ChangesAspect.prototype, {
 
             var k = key.toLowerCase();
             if (k == 'link') {
-                var links = utils.parseLinkHeader(header);
+                var links = parseLinkHeader(header);
                 if (links && links['changes-wait']) {
                     changesWaitUri = utils.toAbsoluteUri(baseUri, links['changes-wait']['href']);
                 }
@@ -28,3 +32,5 @@ utils.extend(ChangesAspect.prototype, {
         }
     }
 });
+
+module.exports = ChangesAspect;

@@ -1,3 +1,6 @@
+var utils = require('../utils');
+var debug = require('console');
+
 var Events = function () {
     this._events = {};
 };
@@ -31,3 +34,5 @@ utils.extend(Events.prototype, {
         }
     }
 });
+
+module.exports = Events;
