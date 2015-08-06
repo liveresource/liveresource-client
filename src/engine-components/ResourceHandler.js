@@ -49,26 +49,26 @@ class ResourceHandler {
     }
 
     addValueEvent() {
-        var self = this;
+
         var request = new Pollymer.Request();
         request.on('finished', (code, result, headers) => {
 
-            self.valueAspect.updateFromHeaders(self.uri, headers);
+            this.valueAspect.updateFromHeaders(this.uri, headers);
 
             if (code >= 200 && code < 400) {
                 // 304 if not changed, don't trigger value
                 if (code < 300) {
-                    self.trigger('value', self, result);
+                    this.trigger('value', this, result);
                 }
-                if (self.valueAspect.etag) {
-                    Engine().addObjectResource(self);
+                if (this.valueAspect.etag) {
+                    Engine().addObjectResource(this);
                 } else {
                     debug.info('no etag');
                 }
                 request = null;
             } else if (code >= 400) {
                 if (code == 404) {
-                    self.trigger('removed', self);
+                    this.trigger('removed', this);
                     request = null;
                 } else {
                     request.retry();
@@ -79,28 +79,28 @@ class ResourceHandler {
     }
 
     addChangesEvent() {
-        var self = this;
+
         var request = new Pollymer.Request();
         request.on('finished', (code, result, headers) => {
 
-            self.changesAspect.updateFromHeaders(self.uri, headers);
+            this.changesAspect.updateFromHeaders(this.uri, headers);
 
             if (code >= 200 && code < 300) {
                 // 304 if not changed, don't trigger changes
                 if (code < 300) {
                     for (var n = 0; n < result.length; ++n) {
                         if (result[n].deleted) {
-                            self.trigger('child-deleted', self, result[n]);
+                            this.trigger('child-deleted', this, result[n]);
                         } else {
-                            self.trigger('child-added', self, result[n]);
+                            this.trigger('child-added', this, result[n]);
                         }
                     }
                 }
-                if (self.changesAspect.changesWaitUri) {
-                    Engine().addCollectionResource(self);
-                    if (!self.changesAspect.started) {
-                        self.changesAspect.started = true;
-                        self.trigger('ready', self);
+                if (this.changesAspect.changesWaitUri) {
+                    Engine().addCollectionResource(this);
+                    if (!this.changesAspect.started) {
+                        this.changesAspect.started = true;
+                        this.trigger('ready', this);
                     }
                     request = null;
                 } else {
