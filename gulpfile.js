@@ -10,7 +10,7 @@ var doBuild = function(options) {
     var uglify = require('gulp-uglify');
     var sourcemaps = require('gulp-sourcemaps');
     var aliasify = require('aliasify');
-    var es6ify = require('es6ify');
+    var babelify = require('babelify');
 
     var debug = options.debug;
     var entryPoint = options.entryPoint;
@@ -18,13 +18,12 @@ var doBuild = function(options) {
     var fileNameBase = options.fileNameBase;
 
     // output file name
-    var outputFileName = fileNameBase + '-latest' + (debug ? '' : '.min') + '.js';
+    var outputFileName = fileNameBase + (debug ? '' : '.min') + '.js';
 
     // set up the browserify instance on a task basis
-    var b = browserify({ debug: debug, standalone: expose, paths: [ './node_modules', './src' ] })
-        .add(es6ify.runtime)
-        .transform(es6ify)
-        .require(entryPoint, { entry: true });
+    var b = browserify({ debug: debug, standalone: expose, paths: [ './node_modules', './src', './lib' ] });
+    b.transform(babelify);
+    b.require(require.resolve(entryPoint), { entry: true })
 
     if (!debug) {
         var aliasifyOptions = { aliases: {
@@ -34,6 +33,7 @@ var doBuild = function(options) {
     }
 
     var pipe = b.bundle()
+        .on('error', gutil.log.bind(gutil, 'Browserify Error'))
         .pipe(source(outputFileName))
         .pipe(buffer());
 
@@ -45,7 +45,7 @@ var doBuild = function(options) {
         pipe = pipe.pipe(uglify());
     }
 
-    return pipe.on('error', gutil.log)
+    return pipe
         .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('./build/output/'));
 };
