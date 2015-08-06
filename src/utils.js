@@ -97,10 +97,6 @@ var replaceStart = function(str, find, replace) {
     return replace + str.substring(find.length);
 };
 
-var nextUpdate = function(predicate) {
-    return window.setTimeout(() => { predicate(); }, 0);
-};
-
 module.exports = {
     copyArray,
     findInArray,
@@ -110,6 +106,5 @@ module.exports = {
     forEachOwnKeyValue,
     getOrCreateKey,
     beginsWith,
-    replaceStart,
-    nextUpdate
+    replaceStart
 };

@@ -5,7 +5,7 @@ var mapWebSocketUrls = require('../utils.mapWebSocketUrls');
 class Engine {
     constructor() {
         this._resources = {};
-        this._timer = null;
+        this._updatePending = false;
         this._multiplexWebSocketConnections = {};
         this._multiplexWaitConnections = {};
         this._valueWaitConnections = {};
@@ -345,10 +345,10 @@ class Engine {
     }
 
     _update() {
-        if (!this._timer) {
-            this._timer = utils.nextUpdate(() => {
-
-                this._timer = null;
+        if (!this._updatePending) {
+            this._updatePending = true;
+            process.nextTick(() => {
+                this._updatePending = false;
 
                 // restart our long poll
                 debug.info('engine: setup long polls');
