@@ -18,7 +18,7 @@ var doBuild = function(options) {
     var fileNameBase = options.fileNameBase;
 
     // output file name
-    var outputFileName = fileNameBase + (debug ? '' : '.min') + '.js';
+    var outputFileName = fileNameBase + '-latest' + (debug ? '' : '.min') + '.js';
 
     // set up the browserify instance on a task basis
     var b = browserify({ debug: debug, standalone: expose, paths: [ './node_modules', './src', './lib' ] });
