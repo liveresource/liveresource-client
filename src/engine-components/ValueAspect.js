@@ -3,24 +3,21 @@ var debug = require('console');
 var mapWebSocketUrls = require('../utils.mapWebSocketUrls');
 var parseLinkHeader = require('../utils.parseLinkHeader');
 
-var ValueAspect = function() {
-    if (!(this instanceof ValueAspect)) {
-        throw new window.Error("Constructor called as a function");
+class ValueAspect {
+    constructor() {
+        this.etag = null;
+        this.valueWaitUri = null;
+        this.multiplexWaitUri = null;
+        this.multiplexWsUri = null;
     }
-    this.etag = null;
-    this.valueWaitUri = null;
-    this.multiplexWaitUri = null;
-    this.multiplexWsUri = null;
-};
 
-utils.extend(ValueAspect.prototype, {
-    updateFromHeaders: function(baseUri, headers) {
+    updateFromHeaders(baseUri, headers) {
         var etag = null;
         var valueWaitUri = null;
         var multiplexWaitUri = null;
         var multiplexWsUri = null;
 
-        utils.forEachOwnKeyValue(headers, function(key, header) {
+        utils.forEachOwnKeyValue(headers, (key, header) => {
 
             var k = key.toLowerCase();
             if (k == 'etag') {
@@ -58,8 +55,8 @@ utils.extend(ValueAspect.prototype, {
         if (multiplexWsUri) {
             debug.info('multiplex-ws: [' + multiplexWsUri + ']');
             this.multiplexWsUri = multiplexWsUri;
-        }        
+        }
     }
-});
+}
 
 module.exports = ValueAspect;

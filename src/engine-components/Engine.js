@@ -2,34 +2,31 @@ var utils = require('../utils');
 var debug = require('console');
 var mapWebSocketUrls = require('../utils.mapWebSocketUrls');
 
-var Engine = function () {
-    if (!(this instanceof Engine)) {
-        throw new window.Error("Constructor called as a function");
+class Engine {
+    constructor() {
+        this._resources = {};
+        this._timer = null;
+        this._multiplexWebSocketConnections = {};
+        this._multiplexWaitConnections = {};
+        this._valueWaitConnections = {};
+        this._changesWaitConnections = {};
     }
-    this._resources = {};
-    this._timer = null;
-    this._multiplexWebSocketConnections = {};
-    this._multiplexWaitConnections = {};
-    this._valueWaitConnections = {};
-    this._changesWaitConnections = {};
-};
 
-utils.extend(Engine.prototype, {
-    _getPreferredEndpointsForResources: function(resources) {
+    _getPreferredEndpointsForResources(resources) {
         var valueWaitEndpoints = {};
         var multiplexWebSocketEndpoints = {};
         var multiplexWaitEndpoints = {};
         var changeWaitPolls = {};
 
-        utils.forEachOwnKeyValue(resources, function(resUri, res) {
+        utils.forEachOwnKeyValue(resources, (resUri, res) => {
             if (res.changesWaitUri) {
                 changeWaitPolls[res.changesWaitUri] = res;
             } else {
                 if (res.multiplexWsUri) {
-                    var multiplexWebSocketEndpoint = utils.getOrCreateKey(multiplexWebSocketEndpoints, res.multiplexWsUri, { items: [] });
+                    var multiplexWebSocketEndpoint = utils.getOrCreateKey(multiplexWebSocketEndpoints, res.multiplexWsUri, {items: []});
                     multiplexWebSocketEndpoint.items.push(res);
                 } else if (res.multiplexWaitUri) {
-                    var multiplexWaitEndpoint = utils.getOrCreateKey(multiplexWaitEndpoints, res.multiplexWaitUri, { items: [] });
+                    var multiplexWaitEndpoint = utils.getOrCreateKey(multiplexWaitEndpoints, res.multiplexWaitUri, {items: []});
                     multiplexWaitEndpoint.items.push(res);
                 } else {
                     valueWaitEndpoints[res.valueWaitUri] = res;
@@ -44,28 +41,29 @@ utils.extend(Engine.prototype, {
             changesWaitEndpoints: {}
         };
 
-        utils.forEachOwnKeyValue(multiplexWebSocketEndpoints, function(endpointUri, endpoint) {
-            result.multiplexWebSocketEndpoints[endpointUri] = { endpointUri: endpointUri, items: endpoint.items };
+        utils.forEachOwnKeyValue(multiplexWebSocketEndpoints, (endpointUri, endpoint) => {
+            result.multiplexWebSocketEndpoints[endpointUri] = {endpointUri: endpointUri, items: endpoint.items};
         });
-        utils.forEachOwnKeyValue(multiplexWaitEndpoints, function(endpointUri, endpoint) {
+        utils.forEachOwnKeyValue(multiplexWaitEndpoints, (endpointUri, endpoint) => {
             if (endpoint.items.length > 1 || !endpoint.items[0].valueWaitUri) {
-                result.multiplexWaitEndpoints[endpointUri] = { endpointUri: endpointUri, items: endpoint.items };
+                result.multiplexWaitEndpoints[endpointUri] = {endpointUri: endpointUri, items: endpoint.items};
             } else {
                 valueWaitEndpoints[endpoint.items[0].valueWaitUri] = endpoint.items[0];
             }
         });
-        utils.forEachOwnKeyValue(valueWaitEndpoints, function(endpointUri, endpoint) {
-            result.valueWaitEndpoints[endpointUri] = { endpointUri: endpointUri, item: endpoint };
+        utils.forEachOwnKeyValue(valueWaitEndpoints, (endpointUri, endpoint) => {
+            result.valueWaitEndpoints[endpointUri] = {endpointUri: endpointUri, item: endpoint};
         });
-        utils.forEachOwnKeyValue(changeWaitPolls, function(endpointUri, endpoint) {
-            result.changesWaitEndpoints[endpointUri] = { endpointUri: endpointUri, item: endpoint };
+        utils.forEachOwnKeyValue(changeWaitPolls, (endpointUri, endpoint) => {
+            result.changesWaitEndpoints[endpointUri] = {endpointUri: endpointUri, item: endpoint};
         });
 
         return result;
-    },
-    updateValueItem: function(resource, headers, body) {
+    }
 
-        utils.forEachOwnKeyValue(headers, function(key, header) {
+    updateValueItem(resource, headers, body) {
+
+        utils.forEachOwnKeyValue(headers, (key, header) => {
             var lowercaseKey = key.toLocaleLowerCase();
             if (lowercaseKey == 'etag') {
                 resource.etag = header;
@@ -78,61 +76,57 @@ utils.extend(Engine.prototype, {
             owner.trigger('value', owner, body);
         }
 
-    },
-    updateValueItemMultiplex: function(resources, uri, headers, body) {
-        utils.forEachOwnKeyValue(resources, function(resourceUri, resource) {
+    }
+
+    updateValueItemMultiplex(resources, uri, headers, body) {
+        utils.forEachOwnKeyValue(resources, (resourceUri, resource) => {
             if (resourceUri == uri) {
 
                 this.updateValueItem(resource, headers, body);
 
             }
-        }, this);
-    },
-    _createMultiplexWebSocketConnection: function(endpointUri) {
-        var _this = this;
+        });
+    }
+
+    _createMultiplexWebSocketConnection(endpointUri) {
+
         var connection = {
             uri: endpointUri,
             socket: new WebSockHop(endpointUri),
             subscribedItems: {},
             isConnected: false,
             isRetrying: false,
-            subscribe: function(uri) {
-                this.socket.request({
-                    type: 'subscribe',
-                    mode: 'value',
-                    uri: uri
-                }, function (result) {
+            subscribe: function (uri) {
+                var type = 'subscribe', mode = 'value';
+                this.socket.request({type, mode, uri}, result => {
                     if (result.type == 'subscribed') {
                         connection.subscribedItems[uri] = uri;
                     }
                 });
             },
-            unsubscribe: function(uri) {
-                this.socket.request({
-                    type: 'unsubscribe',
-                    mode: 'value',
-                    uri: uri
-                }, function (result) {
+            unsubscribe: function (uri) {
+                var type = 'unsubscribe', mode = 'value';
+                this.socket.request({type, mode, uri}, result => {
                     if (result.type == 'unsubscribed') {
                         delete connection.subscribedItems[uri];
                     }
                 })
             },
-            mapToHttpUri: function(uri) {
+            mapToHttpUri: function (uri) {
                 var absoluteUri = utils.toAbsoluteUri(this.uri, uri);
                 return mapWebSocketUrls.mapWebSocketUrlToHttpUrl(absoluteUri);
             },
-            checkSubscriptions: function(items) {
+            checkSubscriptions: function (items) {
 
                 var endpointUri = this.uri;
                 debug.info("Multiplex Ws Request URI: " + endpointUri);
 
                 var subscribedItems = {};
-                utils.forEachOwnKeyValue(this.subscribedItems, function(uri, value) {
+                utils.forEachOwnKeyValue(this.subscribedItems, (uri, value) => {
                     subscribedItems[uri] = value;
                 });
 
-                for(var i = 0; i < items.length; i++) {
+                for (var i = 0; i < items.length; i++) {
                     var httpUri = this.mapToHttpUri(items[i].uri);
                     if (httpUri in subscribedItems) {
                         delete subscribedItems[httpUri];
@@ -141,12 +135,12 @@ utils.extend(Engine.prototype, {
                     }
                 }
 
-                utils.forEachOwnKeyValue(subscribedItems, function(uri) {
+                utils.forEachOwnKeyValue(subscribedItems, uri => {
                     this.unsubscribe(uri);
                 });
 
             },
-            close: function() {
+            close: function () {
                 if (this.isConnected) {
                     this.socket.close();
                 } else {
@@ -157,50 +151,51 @@ utils.extend(Engine.prototype, {
 
         connection.socket.formatter = new WebSockHop.JsonFormatter();
 
-        connection.socket.on("opened", function() {
-            connection.socket.on("message", function(data) {
+        connection.socket.on("opened", () => {
+            connection.socket.on("message", data => {
 
                 var uri = data.uri;
                 var absoluteUri = utils.toAbsoluteUri(endpointUri, uri);
                 var httpUri = mapWebSocketUrls.mapWebSocketUrlToHttpUrl(absoluteUri);
 
-                _this.updateValueItemMultiplex(_this._resources, httpUri, data.headers, data.body);
+                this.updateValueItemMultiplex(this._resources, httpUri, data.headers, data.body);
 
             });
             connection.subscribedItems = {};
             connection.isConnected = true;
             connection.isRetrying = false;
 
-            _this._update();
+            this._update();
         });
 
-        connection.socket.on("closed", function() {
+        connection.socket.on("closed", () => {
             connection.isConnected = false;
             connection.isRetrying = false;
         });
 
-        connection.socket.on("error", function() {
+        connection.socket.on("error", () => {
             connection.isConnected = false;
             connection.isRetrying = true;
         });
 
         return connection;
-    },
-    _createValueWaitConnection: function(endpointUri, item) {
-        var self = this;
+    }
+
+    _createValueWaitConnection(endpointUri, item) {
         var poll = {
             uri: endpointUri,
             request: new Pollymer.Request(),
             res: item,
             isActive: false
         };
-        poll.request.on("finished", function(code, result, headers) {
+        poll.request.on("finished", (code, result, headers) => {
             poll.isActive = false;
-            self._onFinishedValueWaitRequest(poll, code, result, headers);
+            this._onFinishedValueWaitRequest(poll, code, result, headers);
         });
         return poll;
-    },
-    _onFinishedValueWaitRequest: function(poll, code, result, headers) {
+    }
+
+    _onFinishedValueWaitRequest(poll, code, result, headers) {
 
         if (code >= 200 && code < 300) {
 
@@ -209,26 +204,27 @@ utils.extend(Engine.prototype, {
         }
 
         this._update();
-    },
-    _createMultiplexWaitConnection: function(endpointUri, items) {
-        var self = this;
+    }
+
+    _createMultiplexWaitConnection(endpointUri, items) {
         var poll = {
             uri: endpointUri,
             request: new Pollymer.Request(),
             resItems: items,
             isActive: false
         };
-        poll.request.on("finished", function(code, result, headers) {
+        poll.request.on("finished", (code, result, headers) => {
             poll.isActive = false;
-            self._onFinishedMultiplexWait(poll, code, result, headers);
+            this._onFinishedMultiplexWait(poll, code, result, headers);
         });
         return poll;
-    },
-    _onFinishedMultiplexWait: function(poll, code, result, headers) {
+    }
+
+    _onFinishedMultiplexWait(poll, code, result, headers) {
 
         if (code >= 200 && code < 300) {
 
-            utils.forEachOwnKeyValue(result, function (uri, item) {
+            utils.forEachOwnKeyValue(result, (uri, item) => {
 
                 debug.info('got data for uri: ' + uri);
 
@@ -236,31 +232,32 @@ utils.extend(Engine.prototype, {
 
                 this.updateValueItemMultiplex(this._resources, absoluteUri, item.headers, item.body);
 
-            }, this);
+            });
 
         }
 
         this._update();
-    },
-    _createChangesWaitConnection: function(endpointUri, item) {
-        var self = this;
+    }
+
+    _createChangesWaitConnection(endpointUri, item) {
         var poll = {
             uri: endpointUri,
             request: new Pollymer.Request(),
             res: item,
             isActive: false
         };
-        poll.request.on("finished", function(code, result, headers) {
+        poll.request.on("finished", (code, result, headers) => {
             poll.isActive = false;
-            self._onFinishedChangesWait(poll, code, result, headers);
+            this._onFinishedChangesWait(poll, code, result, headers);
         });
         return poll;
-    },
-    _onFinishedChangesWait: function (poll, code, result, headers) {
+    }
+
+    _onFinishedChangesWait(poll, code, result, headers) {
 
         if (code >= 200 && code < 300) {
 
-            utils.forEachOwnKeyValue(headers, function(key, header) {
+            utils.forEachOwnKeyValue(headers, (key, header) => {
 
                 var lkey = key.toLowerCase();
                 if (lkey == 'link') {
@@ -287,115 +284,116 @@ utils.extend(Engine.prototype, {
         }
 
         this._update();
-    },
-    _update: function () {
+    }
+
+    static adjustEndpoints(label, currentConnectionsMap, preferredEndpointsMap, changeTest, abortConnection, newConnection, refreshConnection) {
+
+        // currentConnectionsMap = endpointUri -> connection
+        // preferredEndpointsMap = endpointUri -> endpoint
+
+        // Keep track of list of new endpoints to enable
+        var newEndpoints = {};
+        utils.forEachOwnKeyValue(preferredEndpointsMap, (endpointUri, endpoint) => {
+            newEndpoints[endpointUri] = endpoint;
+        });
+
+        // Make a list of endpoints to disable...
+        var endpointsToDisable = [];
+        utils.forEachOwnKeyValue(currentConnectionsMap, (endpointUri, connection) => {
+            // This item is already known, so remove endpoint from "new endpoints".
+            delete newEndpoints[endpointUri];
+
+            var removedOrChanged = false;
+            if (!(endpointUri in preferredEndpointsMap)) {
+                // If item is not in the preferred endpoints map, then it has been
+                // removed. Mark for disabling.
+                removedOrChanged = true;
+            } else {
+                // If item is in the preferred endpoints map, then
+                // call "changeTest" to decide whether this item has changed.
+                var endpoint = preferredEndpointsMap[endpointUri];
+                removedOrChanged = changeTest(endpoint, connection);
+            }
+            if (removedOrChanged) {
+                // If marked, add to "delete" list
+                endpointsToDisable.push(endpointUri);
+            }
+        });
+
+        // ... and disable them.
+        for (var i = 0; i < endpointsToDisable.length; i++) {
+            var endpointUri = endpointsToDisable[i];
+            debug.info("Remove '" + label + "' endpoint - '" + endpointUri + "'.");
+            var connection = currentConnectionsMap[endpointUri];
+            abortConnection(connection);
+            delete currentConnectionsMap[endpointUri];
+        }
+
+        // Create new requests for endpoints that need them.
+        // They will be created with isActive set to false.
+        utils.forEachOwnKeyValue(newEndpoints, (endpointUri, endpoint) => {
+            debug.info("Adding '" + label + "' endpoint - '" + endpointUri + "'.");
+            currentConnectionsMap[endpointUri] = newConnection(endpoint);
+        });
+
+        // For any current endpoint, start them up if
+        // they are not currently marked as being isActive.
+        utils.forEachOwnKeyValue(currentConnectionsMap, (endpointUri, connection) => {
+            var endpoint = preferredEndpointsMap[endpointUri];
+            refreshConnection(connection, endpoint);
+        });
+    }
+
+    _update() {
         if (!this._timer) {
-            this._timer = utils.nextUpdate(function () {
+            this._timer = utils.nextUpdate(() => {
 
                 this._timer = null;
-                var _this = this;
 
                 // restart our long poll
                 debug.info('engine: setup long polls');
 
-                var adjustEndpoints = function(label, currentConnectionsMap, preferredEndpointsMap, changeTest, abortConnection, newConnection, refreshConnection) {
-
-                    // currentConnectionsMap = endpointUri -> connection
-                    // preferredEndpointsMap = endpointUri -> endpoint
-
-                    // Keep track of list of new endpoints to enable
-                    var newEndpoints = {};
-                    utils.forEachOwnKeyValue(preferredEndpointsMap, function(endpointUri, endpoint) {
-                        newEndpoints[endpointUri] = endpoint;
-                    });
-
-                    // Make a list of endpoints to disable...
-                    var endpointsToDisable = [];
-                    utils.forEachOwnKeyValue(currentConnectionsMap, function(endpointUri, connection) {
-                        // This item is already known, so remove endpoint from "new endpoints".
-                        delete newEndpoints[endpointUri];
-
-                        var removedOrChanged = false;
-                        if (!(endpointUri in preferredEndpointsMap)) {
-                            // If item is not in the preferred endpoints map, then it has been
-                            // removed. Mark for disabling.
-                            removedOrChanged = true;
-                        } else {
-                            // If item is in the preferred endpoints map, then
-                            // call "changeTest" to decide whether this item has changed.
-                            var endpoint = preferredEndpointsMap[endpointUri];
-                            removedOrChanged = changeTest(endpoint, connection);
-                        }
-                        if (removedOrChanged) {
-                            // If marked, add to "delete" list
-                            endpointsToDisable.push(endpointUri);
-                        }
-                    });
-
-                    // ... and disable them.
-                    for (var i = 0; i < endpointsToDisable.length; i++) {
-                        var endpointUri = endpointsToDisable[i];
-                        debug.info("Remove '" + label + "' endpoint - '" + endpointUri + "'.");
-                        var connection = currentConnectionsMap[endpointUri];
-                        abortConnection(connection);
-                        delete currentConnectionsMap[endpointUri];
-                    }
-
-                    // Create new requests for endpoints that need them.
-                    // They will be created with isActive set to false.
-                    utils.forEachOwnKeyValue(newEndpoints, function(endpointUri, endpoint) {
-                        debug.info("Adding '" + label + "' endpoint - '" + endpointUri + "'.");
-                        currentConnectionsMap[endpointUri] = newConnection(endpoint);
-                    }, this);
-
-                    // For any current endpoint, start them up if
-                    // they are not currently marked as being isActive.
-                    utils.forEachOwnKeyValue(currentConnectionsMap, function(endpointUri, connection) {
-                        var endpoint = preferredEndpointsMap[endpointUri];
-                        refreshConnection(connection, endpoint);
-                    });
-                };
-
                 var preferredEndpoints = this._getPreferredEndpointsForResources(this._resources);
 
-                adjustEndpoints(
+                Engine.adjustEndpoints(
                     "Multiplex WS",
                     this._multiplexWebSocketConnections,
                     preferredEndpoints.multiplexWebSocketEndpoints,
-                    function(endpoint, connection) {
-                        return endpoint.items.length == 0;
-                    },
-                    function(connection) { connection.socket.abort(); },
-                    function(endpoint) { return _this._createMultiplexWebSocketConnection(endpoint.endpointUri); },
-                    function(connection, endpoint) {
+                    (endpoint, connection) => endpoint.items.length == 0,
+                    connection => { connection.socket.abort(); },
+                    endpoint => this._createMultiplexWebSocketConnection(endpoint.endpointUri),
+                    (connection, endpoint) => {
                         if (connection.isConnected) {
                             connection.checkSubscriptions(endpoint.items);
                         }
                     }
                 );
 
-                adjustEndpoints(
+                Engine.adjustEndpoints(
                     "Value Wait",
                     this._valueWaitConnections,
                     preferredEndpoints.valueWaitEndpoints,
-                    function(endpoint, connection) { return endpoint.item.uri != connection.res.uri; },
-                    function(connection) { connection.request.abort(); },
-                    function(endpoint) { return _this._createValueWaitConnection(endpoint.endpointUri, endpoint.item); },
-                    function(connection) {
+                    (endpoint, connection) => endpoint.item.uri != connection.res.uri,
+                    connection => { connection.request.abort(); },
+                    endpoint => this._createValueWaitConnection(endpoint.endpointUri, endpoint.item),
+                    (connection, endpoint) => {
                         if (!connection.isActive) {
                             var requestUri = connection.uri;
                             debug.info("Value Wait Request URI: " + requestUri);
-                            connection.request.start('GET', requestUri, { 'If-None-Match': connection.res.etag, 'Wait': 55 });
+                            connection.request.start('GET', requestUri, {
+                                'If-None-Match': connection.res.etag,
+                                'Wait': 55
+                            });
                             connection.isActive = true;
                         }
                     }
                 );
 
-                adjustEndpoints(
+                Engine.adjustEndpoints(
                     "Multiplex Wait",
                     this._multiplexWaitConnections,
                     preferredEndpoints.multiplexWaitEndpoints,
-                    function(endpoint, connection) {
+                    (endpoint, connection) => {
                         var removedOrChanged = false;
                         if (endpoint.items.length != connection.resItems.length) {
                             removedOrChanged = true
@@ -422,9 +420,9 @@ utils.extend(Engine.prototype, {
                         }
                         return removedOrChanged;
                     },
-                    function (connection) { connection.request.abort(); },
-                    function (endpoint) { return _this._createMultiplexWaitConnection(endpoint.endpointUri, endpoint.items.slice()); },
-                    function (connection) {
+                    connection => { connection.request.abort(); },
+                    endpoint => this._createMultiplexWaitConnection(endpoint.endpointUri, endpoint.items.slice()),
+                    (connection, endpoint) => {
                         if (!connection.isActive) {
                             var urlSegments = [];
                             for (var i = 0; i < connection.resItems.length; i++) {
@@ -435,33 +433,34 @@ utils.extend(Engine.prototype, {
                             var requestUri = connection.uri + '?' + urlSegments.join('&');
 
                             debug.info("Multiplex Wait Request URI: " + requestUri);
-                            connection.request.start('GET', requestUri, { 'Wait': 55 });
+                            connection.request.start('GET', requestUri, {'Wait': 55});
                             connection.isActive = true;
                         }
                     }
                 );
 
-                adjustEndpoints(
+                Engine.adjustEndpoints(
                     "Changes Wait",
                     this._changesWaitConnections,
                     preferredEndpoints.changesWaitEndpoints,
-                    function(endpoint, connection) { return endpoint.item.uri != connection.res.uri; },
-                    function(connection) { connection.request.abort(); },
-                    function(endpoint) { return _this._createChangesWaitConnection(endpoint.endpointUri, endpoint.item); },
-                    function(connection) {
+                    (endpoint, connection) => endpoint.item.uri != connection.res.uri,
+                    connection => { connection.request.abort(); },
+                    endpoint => this._createChangesWaitConnection(endpoint.endpointUri, endpoint.item),
+                    (connection, endpoint) => {
                         if (!connection.isActive) {
                             var requestUri = connection.uri;
                             debug.info("Changes Wait Request URI: " + requestUri);
-                            connection.request.start('GET', requestUri, { 'Wait': 55 });
+                            connection.request.start('GET', requestUri, {'Wait': 55});
                             connection.isActive = true;
                         }
                     }
                 );
 
-            }, this);
+            });
         }
-    },
-    _getOrCreateResource: function (uri) {
+    }
+
+    _getOrCreateResource(uri) {
         if (!(uri in this._resources)) {
             this._resources[uri] = {
                 uri: uri,
@@ -469,8 +468,9 @@ utils.extend(Engine.prototype, {
             };
         }
         return this._resources[uri];
-    },
-    addObjectResource: function (resourceHandler) {
+    }
+
+    addObjectResource(resourceHandler) {
         var res = this._getOrCreateResource(resourceHandler.uri);
         res.owners.push(resourceHandler);
         res.etag = resourceHandler.valueAspect.etag;
@@ -478,23 +478,24 @@ utils.extend(Engine.prototype, {
         res.multiplexWaitUri = resourceHandler.valueAspect.multiplexWaitUri;
         res.multiplexWsUri = resourceHandler.valueAspect.multiplexWsUri;
         this._update();
-    },
-    addCollectionResource: function (resourceHandler) {
+    }
+
+    addCollectionResource(resourceHandler) {
         var res = this._getOrCreateResource(resourceHandler.uri);
         res.owners.push(resourceHandler);
         res.changesWaitUri = resourceHandler.changesAspect.changesWaitUri;
         this._update();
     }
-});
+}
 
-utils.extend(Engine, {
-    _engine: null,
-    getSharedEngine: function() {
-        if (this._engine == null) {
-            this._engine = new Engine();
-        }
-        return this._engine;
+// We only export the "getSharedEngine" function here
+
+var _engine = null;
+var getSharedEngine = function() {
+    if (_engine == null) {
+        _engine = new Engine();
     }
-});
+    return _engine;
+};
 
-module.exports = Engine;
+module.exports = getSharedEngine;

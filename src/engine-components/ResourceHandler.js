@@ -5,73 +5,68 @@ var Engine = require('./Engine');
 var ChangesAspect = require('./ChangesAspect');
 var ValueAspect = require('./ValueAspect');
 
-var ResourceHandler = function (uri) {
-    if (!(this instanceof ResourceHandler)) {
-        throw new window.Error("Constructor called as a function");
+const VALUE_EVENTS = ['value', 'removed'];
+const CHANGES_EVENTS = ['child-added', 'child-removed']
+
+// "static" resources field
+var _resources = {};
+
+class ResourceHandler {
+    constructor(uri) {
+        this.uri = uri;
+
+        this.valueAspect = new ValueAspect();
+        this.changesAspect = new ChangesAspect();
+
+        this._liveResources = [];
     }
-    this.uri = uri;
 
-    this.valueAspect = new ValueAspect();
-    this.changesAspect = new ChangesAspect();
-
-    this._liveResources = [];
-};
-
-utils.extend(ResourceHandler, {
-    _resources: {},
-    getHandlerForUri: function(uri) {
-        if (!(uri in this._resources)) {
-            this._resources[uri] = new ResourceHandler(uri);
-        }
-        return this._resources[uri];
-    },
-    valueEvents: ['value', 'removed'],
-    changesEvents: ['child-added', 'child-removed']
-});
-
-utils.extend(ResourceHandler.prototype, {
-    addLiveResource: function(liveResource) {
+    addLiveResource(liveResource) {
         this._liveResources.push(liveResource);
-    },
-    removeLiveResource: function(liveResource) {
+    }
+
+    removeLiveResource(liveResource) {
         utils.removeFromArray(this._liveResources, liveResource);
-    },
-    trigger: function() {
+    }
+
+    trigger() {
         var args = utils.copyArray(arguments);
         var count = this._liveResources.length;
-        for(var i = 0; i < count; i++) {
+        for (var i = 0; i < count; i++) {
             var liveResource = this._liveResources[i];
             liveResource._events.trigger.apply(liveResource._events, args);
         }
-    },
-    addEvent: function(type) {
-        if(utils.isInArray(ResourceHandler.valueEvents, type)) {
+    }
+
+    addEvent(type) {
+        if (utils.isInArray(VALUE_EVENTS, type)) {
             this.addValueEvent();
-        } else if(utils.isInArray(ResourceHandler.changesEvents, type)) {
+        } else if (utils.isInArray(CHANGES_EVENTS, type)) {
             this.addChangesEvent()
         } else {
             throw "unknown event type";
         }
-    },
-    addValueEvent: function() {
+    }
+
+    addValueEvent() {
         var self = this;
         var request = new Pollymer.Request();
-        request.on('finished', function(code, result, headers) {
+        request.on('finished', (code, result, headers) => {
 
             self.valueAspect.updateFromHeaders(self.uri, headers);
 
-            if(code >= 200 && code < 400) {
+            if (code >= 200 && code < 400) {
                 // 304 if not changed, don't trigger value
                 if (code < 300) {
                     self.trigger('value', self, result);
                 }
                 if (self.valueAspect.etag) {
-                    Engine.getSharedEngine().addObjectResource(self);
+                    Engine().addObjectResource(self);
                 } else {
                     debug.info('no etag');
                 }
                 request = null;
-            } else if(code >= 400) {
+            } else if (code >= 400) {
                 if (code == 404) {
                     self.trigger('removed', self);
                     request = null;
@@ -81,15 +76,16 @@ utils.extend(ResourceHandler.prototype, {
             }
         });
         request.start('GET', this.uri);
-    },
-    addChangesEvent: function() {
+    }
+
+    addChangesEvent() {
         var self = this;
         var request = new Pollymer.Request();
-        request.on('finished', function(code, result, headers) {
+        request.on('finished', (code, result, headers) => {
 
             self.changesAspect.updateFromHeaders(self.uri, headers);
 
-            if(code >= 200 && code < 300) {
+            if (code >= 200 && code < 300) {
                 // 304 if not changed, don't trigger changes
                 if (code < 300) {
                     for (var n = 0; n < result.length; ++n) {
@@ -101,7 +97,7 @@ utils.extend(ResourceHandler.prototype, {
                     }
                 }
                 if (self.changesAspect.changesWaitUri) {
-                    Engine.getSharedEngine().addCollectionResource(self);
+                    Engine().addCollectionResource(self);
                     if (!self.changesAspect.started) {
                         self.changesAspect.started = true;
                         self.trigger('ready', self);
@@ -116,6 +112,13 @@ utils.extend(ResourceHandler.prototype, {
         });
         request.start('HEAD', this.uri);
     }
-});
+
+    static getHandlerForUri(uri) {
+        if (!(uri in _resources)) {
+            _resources[uri] = new ResourceHandler(uri);
+        }
+        return _resources[uri];
+    }
+}
 
 module.exports = ResourceHandler;

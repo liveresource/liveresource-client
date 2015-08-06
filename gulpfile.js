@@ -10,6 +10,7 @@ var doBuild = function(options) {
     var uglify = require('gulp-uglify');
     var sourcemaps = require('gulp-sourcemaps');
     var aliasify = require('aliasify');
+    var es6ify = require('es6ify');
 
     var debug = options.debug;
     var entryPoint = options.entryPoint;
@@ -20,7 +21,10 @@ var doBuild = function(options) {
     var outputFileName = fileNameBase + '-latest' + (debug ? '' : '.min') + '.js';
 
     // set up the browserify instance on a task basis
-    var b = browserify(entryPoint, { debug: debug, standalone: expose });
+    var b = browserify({ debug: debug, standalone: expose })
+        .add(es6ify.runtime)
+        .transform(es6ify)
+        .require(entryPoint, { entry: true });
 
     if (!debug) {
         var aliasifyOptions = { aliases: {
