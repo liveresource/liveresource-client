@@ -1,14 +1,15 @@
-var utils = require('../utils');
+var utils = require('utils');
+var getWindowLocationHref = require('utils.getWindowLocationHref');
 var debug = require('console');
 
-var Events = require('./Events');
-var ResourceHandler = require('./ResourceHandler');
+var Events = require('engine-components/Events');
+var ResourceHandler = require('engine-components/ResourceHandler');
 
 class LiveResource {
     constructor(uri) {
         this._events = new Events();
 
-        var windowLocationHref = require('../utils.getWindowLocationHref')();
+        var windowLocationHref = getWindowLocationHref();
         var absoluteUri = utils.toAbsoluteUri(windowLocationHref, uri);
         this._resourceHandler = ResourceHandler.getHandlerForUri(absoluteUri);
         this._resourceHandler.addLiveResource(this);

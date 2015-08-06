@@ -1,9 +1,9 @@
-var utils = require('../utils');
+var utils = require('utils');
 var debug = require('console');
 
-var Engine = require('./Engine');
-var ChangesAspect = require('./ChangesAspect');
-var ValueAspect = require('./ValueAspect');
+var Engine = require('engine-components/Engine');
+var ChangesAspect = require('engine-components/ChangesAspect');
+var ValueAspect = require('engine-components/ValueAspect');
 
 const VALUE_EVENTS = ['value', 'removed'];
 const CHANGES_EVENTS = ['child-added', 'child-removed']

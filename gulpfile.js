@@ -21,7 +21,7 @@ var doBuild = function(options) {
     var outputFileName = fileNameBase + '-latest' + (debug ? '' : '.min') + '.js';
 
     // set up the browserify instance on a task basis
-    var b = browserify({ debug: debug, standalone: expose })
+    var b = browserify({ debug: debug, standalone: expose, paths: [ './node_modules', './src' ] })
         .add(es6ify.runtime)
         .transform(es6ify)
         .require(entryPoint, { entry: true });

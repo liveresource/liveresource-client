@@ -1,7 +1,7 @@
-var utils = require('../utils');
+var utils = require('utils');
 var debug = require('console');
-var mapWebSocketUrls = require('../utils.mapWebSocketUrls');
-var parseLinkHeader = require('../utils.parseLinkHeader');
+var mapWebSocketUrls = require('utils.mapWebSocketUrls');
+var parseLinkHeader = require('utils.parseLinkHeader');
 
 class ValueAspect {
     constructor() {

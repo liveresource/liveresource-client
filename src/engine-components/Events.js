@@ -1,4 +1,4 @@
-var utils = require('../utils');
+var utils = require('utils');
 var debug = require('console');
 
 class Events {

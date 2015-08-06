@@ -1,6 +1,6 @@
-var utils = require('../utils');
+var utils = require('utils');
 var debug = require('console');
-var mapWebSocketUrls = require('../utils.mapWebSocketUrls');
+var mapWebSocketUrls = require('utils.mapWebSocketUrls');
 
 class Engine {
     constructor() {
