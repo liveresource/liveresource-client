@@ -2,7 +2,8 @@ var utils = require('./utils');
 
 module.exports = {
     mapHttpUrlToWebSocketUrl: function(uri) {
-        var absoluteUri = utils.toAbsoluteUri(window.location.href, uri);
+        var windowLocationHref = require('./utils.getWindowLocationHref')();
+        var absoluteUri = utils.toAbsoluteUri(windowLocationHref, uri);
 
         var converted = absoluteUri;
         if (utils.beginsWith(absoluteUri, "http://")) {

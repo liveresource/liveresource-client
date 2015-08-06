@@ -8,7 +8,8 @@ class LiveResource {
     constructor(uri) {
         this._events = new Events();
 
-        var absoluteUri = utils.toAbsoluteUri(window.location.href, uri);
+        var windowLocationHref = require('../utils.getWindowLocationHref')();
+        var absoluteUri = utils.toAbsoluteUri(windowLocationHref, uri);
         this._resourceHandler = ResourceHandler.getHandlerForUri(absoluteUri);
         this._resourceHandler.addLiveResource(this);
     }
