@@ -9,7 +9,7 @@ class ValueWaitConnectionsMap extends ConnectionsMap {
     get label() { return 'Value Wait'; }
 
     newConnection(engine, endpoint) {
-        return new ValueWaitConnection(engine, endpoint)
+        return new ValueWaitConnection(engine, endpoint);
     }
 }
 

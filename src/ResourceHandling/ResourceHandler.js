@@ -1,21 +1,12 @@
 var utils = require('utils');
 var debug = require('console');
 
-var ChangesAspect = require('Aspects/Changes/ResourceHandling/ChangesAspect');
-var ValueAspect = require('Aspects/Value/ResourceHandling/ValueAspect');
-
-const VALUE_EVENTS = ['value', 'removed'];
-const CHANGES_EVENTS = ['child-added', 'child-removed']
-
 class ResourceHandler {
-    constructor(engine, uri) {
-        this._engine = engine;
-
+    constructor(resourceHandlerFactory, uri) {
+        this.resourceHandlerFactory = resourceHandlerFactory;
         this.uri = uri;
 
-        this.valueAspect = new ValueAspect();
-        this.changesAspect = new ChangesAspect();
-
+        this._aspects = {};
         this._liveResources = [];
     }
 
@@ -36,78 +27,15 @@ class ResourceHandler {
     }
 
     addEvent(type) {
-        if (utils.isInArray(VALUE_EVENTS, type)) {
-            this.addValueEvent();
-        } else if (utils.isInArray(CHANGES_EVENTS, type)) {
-            this.addChangesEvent()
-        } else {
-            throw "unknown event type";
+        var interestType = this.resourceHandlerFactory.findInterestTypeForEvent(type);
+        if (!(interestType in this._aspects)) {
+            var aspectClass = this.resourceHandlerFactory.getAspectClass(interestType);
+            if (aspectClass != null) {
+                var aspect = new aspectClass(this);
+                this._aspects[interestType] = aspect;
+                aspect.start();
+            }
         }
-    }
-
-    addValueEvent() {
-
-        var request = new Pollymer.Request();
-        request.on('finished', (code, result, headers) => {
-
-            this.valueAspect.updateFromHeaders(this.uri, headers);
-
-            if (code >= 200 && code < 400) {
-                // 304 if not changed, don't trigger value
-                if (code < 300) {
-                    this.trigger('value', this, result);
-                }
-                if (this.valueAspect.etag) {
-                    this._engine.addResource(this, 'value');
-                } else {
-                    debug.info('no etag');
-                }
-                request = null;
-            } else if (code >= 400) {
-                if (code == 404) {
-                    this.trigger('removed', this);
-                    request = null;
-                } else {
-                    request.retry();
-                }
-            }
-        });
-        request.start('GET', this.uri);
-    }
-
-    addChangesEvent() {
-
-        var request = new Pollymer.Request();
-        request.on('finished', (code, result, headers) => {
-
-            this.changesAspect.updateFromHeaders(this.uri, headers);
-
-            if (code >= 200 && code < 300) {
-                // 304 if not changed, don't trigger changes
-                if (code < 300) {
-                    for (var n = 0; n < result.length; ++n) {
-                        if (result[n].deleted) {
-                            this.trigger('child-deleted', this, result[n]);
-                        } else {
-                            this.trigger('child-added', this, result[n]);
-                        }
-                    }
-                }
-                if (this.changesAspect.changesWaitUri) {
-                    this._engine.addResource(this, 'changes');
-                    if (!this.changesAspect.started) {
-                        this.changesAspect.started = true;
-                        this.trigger('ready', this);
-                    }
-                    request = null;
-                } else {
-                    debug.info('no changes-wait link');
-                }
-            } else if (code >= 400) {
-                request.retry();
-            }
-        });
-        request.start('HEAD', this.uri);
     }
 }
 

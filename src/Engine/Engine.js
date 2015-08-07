@@ -25,11 +25,11 @@ class Engine {
         }
     }
 
-    addResource(resourceHandler, interestType) {
+    addResourceHandler(resourceHandler, interestType, createResource) {
         for(var i = 0; i < this._engineUnits.length; i++) {
             var engineUnit = this._engineUnits[i];
             if (engineUnit.InterestType == interestType) {
-                engineUnit.addResource(resourceHandler);
+                engineUnit.addResourceHandler(resourceHandler, createResource);
                 this.update();
                 break;
             }

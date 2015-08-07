@@ -9,7 +9,7 @@ class ChangesWaitConnectionsMap extends ConnectionsMap {
     get label() { return 'Changes Wait'; }
 
     newConnection(engine, endpoint) {
-        return new ChangesWaitConnection(endpoint, engine);
+        return new ChangesWaitConnection(engine, endpoint);
     }
 }
 

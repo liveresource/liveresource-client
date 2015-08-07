@@ -7,21 +7,11 @@ var MultiplexWebSocketConnectionsMap = require('Aspects/Value/Engine/MultiplexWe
 var MultiplexWaitConnectionsMap = require('Aspects/Value/Engine/MultiplexWaitConnectionsMap');
 
 class ValueEngineUnit extends EngineUnit {
-    constructor() {
-        super();
+    constructor(engine) {
+        super(engine);
         this._valueWaitConnectionsMap = new ValueWaitConnectionsMap(this);
         this._multiplexWebSocketConnectionsMap = new MultiplexWebSocketConnectionsMap(this);
         this._multiplexWaitConnectionsMap = new MultiplexWaitConnectionsMap(this);
-    }
-
-    addResource(resourceHandler) {
-        this._addResourceHandler(resourceHandler, () => new ValueResource(
-            resourceHandler.uri,
-            resourceHandler.valueAspect.etag,
-            resourceHandler.valueAspect.valueWaitUri,
-            resourceHandler.valueAspect.multiplexWaitUri,
-            resourceHandler.valueAspect.multiplexWsUri
-        ));
     }
 
     update() {

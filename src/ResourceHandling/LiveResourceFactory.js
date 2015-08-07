@@ -2,14 +2,14 @@ var LiveResource = require('ResourceHandling/LiveResource');
 
 class LiveResourceFactory {
     constructor(resourceHandlerFactory) {
-        this._resourceHandlerFactory = resourceHandlerFactory;
+        this.resourceHandlerFactory = resourceHandlerFactory;
     }
 
     getLiveResourceClass() {
         var factory = this;
         return class {
             constructor(uri) {
-                return new LiveResource(factory._resourceHandlerFactory, uri);
+                return new LiveResource(factory.resourceHandlerFactory, uri);
             }
         };
     }

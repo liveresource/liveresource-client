@@ -7,14 +7,7 @@ var ChangesResource = require('Aspects/Changes/Engine/ChangesResource');
 class ChangesEngineUnit extends EngineUnit {
     constructor(engine) {
         super(engine);
-        this._changesWaitConnectionsMap = new ChangesWaitConnectionsMap(engine);
-    }
-
-    addResource(resourceHandler) {
-        this._addResourceHandler(resourceHandler, () => new ChangesResource(
-            resourceHandler.uri,
-            resourceHandler.changesAspect.changesWaitUri
-        ));
+        this._changesWaitConnectionsMap = new ChangesWaitConnectionsMap(this);
     }
 
     update() {
@@ -36,7 +29,7 @@ class ChangesEngineUnit extends EngineUnit {
     }
 
     get InterestType() {
-        return 'Changes';
+        return 'changes';
     }
 }
 
