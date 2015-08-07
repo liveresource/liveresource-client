@@ -1,7 +1,7 @@
 var utils = require('utils');
 var getWindowLocationHref = require('utils.getWindowLocationHref');
 
-var Events = require('engine-components/Events');
+var Events = require('ResourceHandling/Events');
 
 class LiveResource {
     constructor(resourceHandlerFactory, uri) {

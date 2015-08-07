@@ -2,9 +2,9 @@ var utils = require('utils');
 var parseLinkHeader = require('utils.parseLinkHeader');
 var Pollymer = require('Pollymer');
 
-var Connection = require('engine-components/Connection');
+var Connection = require('Engine/Connection');
 
-class ValueWaitConnection extends Connection {
+class ChangesWaitConnection extends Connection {
     constructor(engine, endpoint) {
         super(engine);
 
@@ -35,9 +35,8 @@ class ValueWaitConnection extends Connection {
     refresh(endpoint) {
         if (!this.isActive) {
             var requestUri = this.uri;
-            debug.info(`Value Wait Request URI: ${requestUri}`);
+            debug.info(`Changes Wait Request URI: ${requestUri}`);
             this.request.start('GET', requestUri, {
-                'If-None-Match': this.res.etag,
                 'Wait': 55
             });
             this.isActive = true;
@@ -45,4 +44,4 @@ class ValueWaitConnection extends Connection {
     }
 }
 
-module.exports = ValueWaitConnection;
+module.exports = ChangesWaitConnection;
