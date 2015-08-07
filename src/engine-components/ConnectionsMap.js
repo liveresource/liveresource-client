@@ -44,7 +44,7 @@ class ConnectionsMap {
         // ... and disable them.
         for (var i = 0; i < endpointsToDisable.length; i++) {
             var endpointUri = endpointsToDisable[i];
-            debug.info('Remove \'${this.label}\' endpoint - \'${endpointUri}\'.');
+            debug.info(`Remove '${this.label}' endpoint - '${endpointUri}'.`);
             var connection = this._connections[endpointUri];
             connection.abort();
             delete this._connections[endpointUri];
@@ -52,7 +52,7 @@ class ConnectionsMap {
 
         // Create new requests for endpoints that need them.
         utils.forEachOwnKeyValue(newEndpoints, (endpointUri, endpoint) => {
-            debug.info('Adding \'${this.label}\' endpoint - \'${endpointUri}\'.');
+            debug.info(`Adding '${this.label}' endpoint - '${endpointUri}'.`);
             this._connections[endpointUri] = this.newConnection(this._engineUnit.engine, endpoint);
         });
 

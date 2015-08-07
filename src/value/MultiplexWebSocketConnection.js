@@ -74,7 +74,7 @@ class MultiplexWebSocketConnection extends Connection {
     checkSubscriptions(items) {
 
         var endpointUri = this.uri;
-        debug.info('Multiplex Ws Request URI: ${endpointUri}');
+        debug.info(`Multiplex WebSocket Request URI: ${endpointUri}`);
 
         var subscribedItems = {};
         utils.forEachOwnKeyValue(this.subscribedItems, (uri, value) => {

@@ -35,7 +35,7 @@ class ChangesWaitConnection extends Connection {
     refresh(endpoint) {
         if (!this.isActive) {
             var requestUri = this.uri;
-            debug.info('Changes Wait Request URI: ${requestUri}');
+            debug.info(`Changes Wait Request URI: ${requestUri}`);
             this.request.start('GET', requestUri, {
                 'Wait': 55
             });

@@ -35,7 +35,7 @@ class ValueWaitConnection extends Connection {
     refresh(endpoint) {
         if (!this.isActive) {
             var requestUri = this.uri;
-            debug.info('Value Wait Request URI: ${requestUri}');
+            debug.info(`Value Wait Request URI: ${requestUri}`);
             this.request.start('GET', requestUri, {
                 'If-None-Match': this.res.etag,
                 'Wait': 55

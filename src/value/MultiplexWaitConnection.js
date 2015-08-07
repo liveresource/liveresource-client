@@ -21,7 +21,7 @@ class MultiplexWaitConnection extends Connection {
 
                 utils.forEachOwnKeyValue(result, (uri, item) => {
 
-                    debug.info('got data for uri: ${uri}');
+                    debug.info(`got data for uri: ${uri}`);
                     var absoluteUri = utils.toAbsoluteUri(this.uri, uri);
                     ValueResource.updateValueItemMultiplex(engineUnit._resources, absoluteUri, item.headers, item.body);
 
@@ -71,11 +71,11 @@ class MultiplexWaitConnection extends Connection {
             for (var i = 0; i < this.resItems.length; i++) {
                 var res = this.resItems[i];
                 var uri = res.uri;
-                urlSegments.push('u=${encodeURIComponent(uri)}&inm=${encodeURIComponent(res.etag)}');
+                urlSegments.push(`u=${encodeURIComponent(uri)}&inm=${encodeURIComponent(res.etag)}`);
             }
-            var requestUri = '${this.uri}?${urlSegments.join('&')}';
+            var requestUri = `${this.uri}?${urlSegments.join('&')}`;
 
-            debug.info('Multiplex Wait Request URI: ${requestUri}');
+            debug.info(`Multiplex Wait Request URI: ${requestUri}`);
             this.request.start('GET', requestUri, {
                 'Wait': 55
             });
