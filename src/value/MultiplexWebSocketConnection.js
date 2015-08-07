@@ -105,7 +105,7 @@ class MultiplexWebSocketConnection extends Connection {
     }
 
     hasChanged(endpoint) {
-        endpoint.items.length == 0
+        return endpoint.items.length == 0;
     }
 
     abort() {
