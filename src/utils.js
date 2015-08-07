@@ -77,9 +77,9 @@ var forEachOwnKeyValue = function(obj, predicate) {
     }
 };
 
-var getOrCreateKey = function(obj, key, defaultValue) {
+var getOrCreateKey = function(obj, key, create) {
     if (!(key in obj)) {
-        obj[key] = defaultValue;
+        obj[key] = create();
     }
     return obj[key];
 };

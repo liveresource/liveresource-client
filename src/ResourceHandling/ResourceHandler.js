@@ -58,7 +58,7 @@ class ResourceHandler {
                     this.trigger('value', this, result);
                 }
                 if (this.valueAspect.etag) {
-                    this._engine.addObjectResource(this);
+                    this._engine.addResource(this, 'value');
                 } else {
                     debug.info('no etag');
                 }
@@ -94,7 +94,7 @@ class ResourceHandler {
                     }
                 }
                 if (this.changesAspect.changesWaitUri) {
-                    this._engine.addCollectionResource(this);
+                    this._engine.addResource(this, 'changes');
                     if (!this.changesAspect.started) {
                         this.changesAspect.started = true;
                         this.trigger('ready', this);

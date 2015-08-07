@@ -11,8 +11,8 @@ class ChangesEngineUnit extends EngineUnit {
     }
 
     addResource(resourceHandler) {
-        this._getOrCreateResource(resourceHandler.uri, resourceHandler, uri => new ChangesResource(
-            uri,
+        this._addResourceHandler(resourceHandler, () => new ChangesResource(
+            resourceHandler.uri,
             resourceHandler.changesAspect.changesWaitUri
         ));
     }

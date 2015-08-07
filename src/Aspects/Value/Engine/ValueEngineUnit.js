@@ -15,8 +15,8 @@ class ValueEngineUnit extends EngineUnit {
     }
 
     addResource(resourceHandler) {
-        this._getOrCreateResource(resourceHandler.uri, resourceHandler, uri => new ValueResource(
-            uri,
+        this._addResourceHandler(resourceHandler, () => new ValueResource(
+            resourceHandler.uri,
             resourceHandler.valueAspect.etag,
             resourceHandler.valueAspect.valueWaitUri,
             resourceHandler.valueAspect.multiplexWaitUri,
@@ -32,10 +32,10 @@ class ValueEngineUnit extends EngineUnit {
 
         utils.forEachOwnKeyValue(this._resources, (resUri, res) => {
             if (res.multiplexWebSocketUri) {
-                var multiplexWebSocketPoll = utils.getOrCreateKey(multiplexWebSocketItems, res.multiplexWebSocketUri, {items: []});
+                var multiplexWebSocketPoll = utils.getOrCreateKey(multiplexWebSocketItems, res.multiplexWebSocketUri, () => ({items: []}));
                 multiplexWebSocketPoll.items.push(res);
             } else if (res.multiplexWaitUri) {
-                var multiplexWaitPoll = utils.getOrCreateKey(multiplexWaitItems, res.multiplexWaitUri, {items: []});
+                var multiplexWaitPoll = utils.getOrCreateKey(multiplexWaitItems, res.multiplexWaitUri, () => ({items: []}));
                 multiplexWaitPoll.items.push(res);
             } else {
                 valueWaitItems[res.valueWaitUri] = res;

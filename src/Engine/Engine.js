@@ -36,14 +36,6 @@ class Engine {
         }
     }
 
-    addObjectResource(resourceHandler) {
-        this.addResource(resourceHandler, 'value');
-    }
-
-    addCollectionResource(resourceHandler) {
-        this.addResource(resourceHandler, 'changes');
-    }
-
     addEngineUnit(engineUnit) {
         this._engineUnits.push(engineUnit);
         engineUnit.engine = this;
