@@ -27,12 +27,11 @@ class ResourceHandler {
         utils.removeFromArray(this._liveResources, liveResource);
     }
 
-    trigger() {
-        var args = utils.copyArray(arguments);
+    trigger(event, target, ...args) {
         var count = this._liveResources.length;
         for (var i = 0; i < count; i++) {
             var liveResource = this._liveResources[i];
-            liveResource._events.trigger.apply(liveResource._events, args);
+            liveResource._events.trigger(event, target, ...args);
         }
     }
 

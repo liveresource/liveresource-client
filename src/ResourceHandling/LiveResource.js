@@ -18,10 +18,8 @@ class LiveResource {
         this._resourceHandler.addEvent(type);
     }
 
-    off(type, handler) {
-        var args = utils.copyArray(arguments, 1);
-        args.unshift(type);
-        this._events.off.apply(this._events, args);
+    off(type, handler = null) {
+        this._events.off(type, handler);
     }
 
     cancel() {

@@ -18,9 +18,8 @@ class Events {
         handlers.push(handler);
     }
 
-    off(type) {
-        if (arguments.length > 1) {
-            var handler = arguments[1];
+    off(type, handler = null) {
+        if (handler != null) {
             var handlers = this._getHandlersForType(type);
             utils.removeFromArray(handlers, handler);
         } else {
@@ -28,9 +27,8 @@ class Events {
         }
     }
 
-    trigger(type, obj) {
-        var args = utils.copyArray(arguments, 2);
-        var handlers = utils.copyArray(this._getHandlersForType(type));
+    trigger(type, obj, ...args) {
+        var handlers = this._getHandlersForType(type).slice();
         for (var i = 0, n = handlers.length; i < n; i++) {
             var handler = handlers[i];
             handler.apply(obj, args);

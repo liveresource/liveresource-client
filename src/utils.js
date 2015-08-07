@@ -1,8 +1,3 @@
-var copyArray = function(array) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    return Array.prototype.slice.apply(array, args);
-};
-
 var findInArray = function(array, item) {
     for (var i = 0, length = array.length; i < length; i++) {
         if (array[i] === item) {
@@ -98,7 +93,6 @@ var replaceStart = function(str, find, replace) {
 };
 
 module.exports = {
-    copyArray,
     findInArray,
     isInArray,
     removeFromArray,
