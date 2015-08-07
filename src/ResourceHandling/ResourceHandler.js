@@ -1,18 +1,16 @@
 var utils = require('utils');
 var debug = require('console');
 
-var Engine = require('engine-components/Engine');
 var ChangesAspect = require('engine-components/ChangesAspect');
 var ValueAspect = require('engine-components/ValueAspect');
 
 const VALUE_EVENTS = ['value', 'removed'];
 const CHANGES_EVENTS = ['child-added', 'child-removed']
 
-// "static" resources field
-var _resources = {};
-
 class ResourceHandler {
-    constructor(uri) {
+    constructor(engine, uri) {
+        this._engine = engine;
+
         this.uri = uri;
 
         this.valueAspect = new ValueAspect();
@@ -61,7 +59,7 @@ class ResourceHandler {
                     this.trigger('value', this, result);
                 }
                 if (this.valueAspect.etag) {
-                    Engine().addObjectResource(this);
+                    this._engine.addObjectResource(this);
                 } else {
                     debug.info('no etag');
                 }
@@ -97,7 +95,7 @@ class ResourceHandler {
                     }
                 }
                 if (this.changesAspect.changesWaitUri) {
-                    Engine().addCollectionResource(this);
+                    this._engine.addCollectionResource(this);
                     if (!this.changesAspect.started) {
                         this.changesAspect.started = true;
                         this.trigger('ready', this);
@@ -111,13 +109,6 @@ class ResourceHandler {
             }
         });
         request.start('HEAD', this.uri);
-    }
-
-    static getHandlerForUri(uri) {
-        if (!(uri in _resources)) {
-            _resources[uri] = new ResourceHandler(uri);
-        }
-        return _resources[uri];
     }
 }
 

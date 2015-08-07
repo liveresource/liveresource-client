@@ -50,14 +50,4 @@ class Engine {
     }
 }
 
-// We only export the "getSharedEngine" function here
-
-var _engine = null;
-var getSharedEngine = function() {
-    if (_engine == null) {
-        _engine = new Engine();
-    }
-    return _engine;
-};
-
-module.exports = getSharedEngine;
+module.exports = Engine;
