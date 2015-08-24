@@ -11,11 +11,23 @@ var doBuild = function(options) {
     var sourcemaps = require('gulp-sourcemaps');
     var aliasify = require('aliasify');
     var babelify = require('babelify');
+    var header = require('gulp-header');
 
     var debug = options.debug;
     var entryPoint = options.entryPoint;
     var expose = options.expose;
     var fileNameBase = options.fileNameBase;
+
+    // Build banner
+    var pkg = require('./package.json');
+    var banner = ['/*!',
+        ' * <%= pkg.description %> v<%= pkg.version %>',
+        ' * (c) <%= pkg.author %> - <%= pkg.homepage %>',
+        ' * License: <%= pkg.licenses[0].type %> (<%= pkg.licenses[0].url %>)',
+        ' */',
+    ''].join('\n');
+    
+    var headerTask = header(banner, { pkg: pkg });
 
     // output file name
     var outputFileName = fileNameBase + '-latest' + (debug ? '' : '.min') + '.js';
@@ -47,8 +59,11 @@ var doBuild = function(options) {
 
     return pipe
         .pipe(sourcemaps.write('./'))
+        .pipe(headerTask)
         .pipe(gulp.dest('./build/output/'));
 };
+
+gulp.task('default', [ 'build-debug', 'build-min' ]);
 
 gulp.task('build-debug', function () {
     return doBuild({entryPoint: './src/main.js', expose: 'LiveResource', fileNameBase: 'liveresource', debug: true});
