@@ -1,6 +1,10 @@
-utils.extend(utils, {
+var utils = require('utils');
+var getWindowLocationHref = require('utils.getWindowLocationHref');
+
+module.exports = {
     mapHttpUrlToWebSocketUrl: function(uri) {
-        var absoluteUri = utils.toAbsoluteUri(window.location.href, uri);
+        var windowLocationHref = getWindowLocationHref();
+        var absoluteUri = utils.toAbsoluteUri(windowLocationHref, uri);
 
         var converted = absoluteUri;
         if (utils.beginsWith(absoluteUri, "http://")) {
@@ -29,4 +33,4 @@ utils.extend(utils, {
 
         return converted;
     }
-});
+};

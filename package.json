@@ -1,39 +1,43 @@
 {
   "name": "liveresource",
-  "description": "LiveResource",
+  "description": "LiveResource library",
   "homepage": "https://github.com/fanout/liveresource",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "author": "fanout",
-  "main": "build/output/liveresource-latest.debug.js",
+  "main": "./src/main.js",
   "scripts": {
-    "prepublish": "grunt",
-    "test": "node spec/runner.node.js"
+    "build-debug": "gulp build-debug",
+    "build-min": "gulp build-min",
+    "test": "node tests/*.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/fanout/liveresource.git"
   },
   "bugs": "https://github.com/fanout/liveresource/issues",
-  "testling": {
-    "preprocess": "build/build.sh",
-    "html": "spec/runner.html?src=build/output/liveresource-latest.js&testling=true",
-    "browsers": [
-      "ie/6..latest",
-      "chrome/20..latest",
-      "firefox/3..latest",
-      "safari/5.0.5..latest",
-      "opera/11.0..latest",
-      "iphone/6..latest",
-      "ipad/6..latest"
-    ]
-  },
   "licenses": [
-    { "type": "MIT", "url": "http://www.opensource.org/licenses/mit-license.php" }
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/mit-license.php"
+    }
   ],
+  "browser": {
+    "./src/utils.getWindowLocationHref.js": "./src/utils.getWindowLocationHrefBrowser.js"
+  },
   "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-cli": "~0.1.0",
-    "closure-compiler": "~0.2.1"
+    "aliasify": "^1.7.2",
+    "babelify": "^6.1.3",
+    "browserify": "^11.0.0",
+    "gulp": "^3.9.0",
+    "gulp-header": "^1.5.0",
+    "gulp-sourcemaps": "^1.5.2",
+    "gulp-uglify": "^1.2.0",
+    "gulp-util": "^3.0.6",
+    "tape": "^4.0.1",
+    "uglify-js": "^2.4.24",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.3.0"
   }
 }
