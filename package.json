@@ -8,6 +8,7 @@
   "main": "./src/main.js",
   "scripts": {
     "build": "gulp build",
+    "build-dist": "gulp",
     "test": "node tests/*.js"
   },
   "repository": {
