@@ -3,4 +3,4 @@ node_modules
 build/output
 dist
 .idea/
-
+.vscode/
