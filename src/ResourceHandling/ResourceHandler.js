@@ -8,10 +8,14 @@ class ResourceHandler {
 
         this._aspects = {};
         this._liveResources = [];
+
+        this._onceOnlyEventMap = new WeakMap();
+        this._onceOnlyEvents = new Map();
     }
 
     addLiveResource(liveResource) {
         this._liveResources.push(liveResource);
+        this._onceOnlyEventMap.set(liveResource, []);
     }
 
     removeLiveResource(liveResource) {
@@ -26,6 +30,28 @@ class ResourceHandler {
         }
     }
 
+    triggerOnceOnlyEvent(event, target, ...args) {
+        this._onceOnlyEvents.set(event, {target, args});
+        this.checkOnceOnlyEvents();
+    }
+
+    checkOnceOnlyEvents() {
+        debug.log("Checking once only events...");
+
+        for (var event of this._onceOnlyEvents.keys()) {
+            var {target, args} = this._onceOnlyEvents.get(event);
+
+            for (var liveResource of this._liveResources) {
+                var processedEvents = this._onceOnlyEventMap.get(liveResource);
+                if (processedEvents.indexOf(event) < 0) {
+                    processedEvents.push(event);
+                    liveResource._events.trigger(event, target, ...args);
+                }
+            }
+
+        }
+    }
+
     addEvent(type) {
         var interestType = this.resourceHandlerFactory.findInterestTypeForEvent(type);
         if (!(interestType in this._aspects)) {
@@ -36,6 +62,8 @@ class ResourceHandler {
                 aspect.start();
             }
         }
+
+        this.checkOnceOnlyEvents();
     }
 }
 

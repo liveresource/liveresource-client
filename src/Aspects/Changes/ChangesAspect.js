@@ -37,7 +37,7 @@ class ChangesAspect extends Aspect {
                     ));
                     if (!this.started) {
                         this.started = true;
-                        this._resourceHandler.trigger('ready', this._resourceHandler);
+                        this._resourceHandler.triggerOnceOnlyEvent('ready', this._resourceHandler);
                     }
                     request = null;
                 } else {
