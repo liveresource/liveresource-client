@@ -19,13 +19,13 @@ class MultiplexWaitConnection extends Connection {
 
             if (code >= 200 && code < 300) {
 
-                utils.forEachOwnKeyValue(result, (uri, item) => {
+                for (let [uri, item] of utils.objectEntries(result)) {
 
                     debug.info(`got data for uri: ${uri}`);
                     var absoluteUri = utils.toAbsoluteUri(this.uri, uri);
                     ValueResource.updateValueItemMultiplex(resources, absoluteUri, item.headers, item.body);
 
-                });
+                }
 
             }
 

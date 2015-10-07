@@ -14,17 +14,17 @@ class ChangesEngineUnit extends EngineUnit {
     update() {
 
         var changesWaitItems = {};
-        utils.forEachOwnKeyValue(this._resources, (resUri, res) => {
+        for (let [resUri, res] of utils.objectEntries(this._resources)) {
             if (res.changesWaitUri) {
                 changesWaitItems[res.changesWaitUri] = res;
             }
-        });
+        }
 
         var changesWaitEndpoints = {};
-        utils.forEachOwnKeyValue(changesWaitItems, (endpointUri, endpoint) => {
+        for (let [endpointUri, endpoint] of utils.objectEntries(changesWaitItems)) {
             changesWaitEndpoints[endpointUri] = { endpointUri, item: endpoint };
-        });
-        
+        }
+
         this.engine.adjustEndpoints(
             'Changes Wait',
             this._changesWaitConnections,

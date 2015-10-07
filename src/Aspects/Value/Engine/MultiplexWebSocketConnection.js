@@ -77,9 +77,9 @@ class MultiplexWebSocketConnection extends Connection {
         debug.info(`Multiplex WebSocket Request URI: ${endpointUri}`);
 
         var subscribedItems = {};
-        utils.forEachOwnKeyValue(this.subscribedItems, (uri, value) => {
+        for (let [uri, value] of utils.objectEntries(this.subscribedItems)) {
             subscribedItems[uri] = value;
-        });
+        }
 
         for (var i = 0; i < items.length; i++) {
             var httpUri = this.mapToHttpUri(items[i].uri);
@@ -90,9 +90,9 @@ class MultiplexWebSocketConnection extends Connection {
             }
         }
 
-        utils.forEachOwnKeyValue(subscribedItems, uri => {
+        for (let [uri, value] of utils.objectEntries(subscribedItems)) {
             this.unsubscribe(uri);
-        });
+        }
 
     }
 

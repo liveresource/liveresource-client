@@ -20,7 +20,7 @@ class ValueEngineUnit extends EngineUnit {
         var multiplexWebSocketItems = {};
         var multiplexWaitItems = {};
 
-        utils.forEachOwnKeyValue(this._resources, (resUri, res) => {
+        for (let [resUri, res] of utils.objectEntries(this._resources)) {
             if (res.multiplexWebSocketUri) {
                 var multiplexWebSocketPoll = utils.getOrCreateKey(multiplexWebSocketItems, res.multiplexWebSocketUri, () => ({items: []}));
                 multiplexWebSocketPoll.items.push(res);
@@ -30,24 +30,24 @@ class ValueEngineUnit extends EngineUnit {
             } else {
                 valueWaitItems[res.valueWaitUri] = res;
             }
-        });
+        }
 
         var valueWaitEndpoints = {};
         var multiplexWebSocketEndpoints = {};
         var multiplexWaitEndpoints = {};
-        utils.forEachOwnKeyValue(multiplexWebSocketItems, (endpointUri, endpoint) => {
+        for (let [endpointUri, endpoint] of utils.objectEntries(multiplexWebSocketItems)) {
             multiplexWebSocketEndpoints[endpointUri] = { endpointUri, items: endpoint.items };
-        });
-        utils.forEachOwnKeyValue(multiplexWaitItems, (endpointUri, endpoint) => {
+        }
+        for (let [endpointUri, endpoint] of utils.objectEntries(multiplexWaitItems)) {
             if (endpoint.items.length > 1 || !endpoint.items[0].valueWaitUri) {
                 multiplexWaitEndpoints[endpointUri] = { endpointUri, items: endpoint.items };
             } else {
                 valueWaitItems[endpoint.items[0].valueWaitUri] = endpoint.items[0];
             }
-        });
-        utils.forEachOwnKeyValue(valueWaitItems, (endpointUri, endpoint) => {
+        }
+        for (let [endpointUri, endpoint] of utils.objectEntries(valueWaitItems)) {
             valueWaitEndpoints[endpointUri] = { endpointUri, item: endpoint };
-        });
+        }
 
         this.engine.adjustEndpoints(
             'Value Wait',

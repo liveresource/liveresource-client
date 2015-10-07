@@ -51,13 +51,13 @@ class Engine {
 
         // Keep track of list of new endpoints to enable
         var newEndpoints = {};
-        utils.forEachOwnKeyValue(preferredEndpointsMap, (endpointUri, endpoint) => {
+        for (let [endpointUri, endpoint] of utils.objectEntries(preferredEndpointsMap)) {
             newEndpoints[endpointUri] = endpoint;
-        });
+        }
 
         // Make a list of endpoints to disable...
         var endpointsToDisable = [];
-        utils.forEachOwnKeyValue(connections, (endpointUri, connection) => {
+        for (let [endpointUri, connection] of utils.objectEntries(connections)) {
             // This item is already known, so remove endpoint from "new endpoints".
             delete newEndpoints[endpointUri];
 
@@ -76,7 +76,7 @@ class Engine {
                 // If marked, add to "delete" list
                 endpointsToDisable.push(endpointUri);
             }
-        });
+        }
 
         // ... and disable them.
         for (var i = 0; i < endpointsToDisable.length; i++) {
@@ -88,17 +88,17 @@ class Engine {
         }
 
         // Create new requests for endpoints that need them.
-        utils.forEachOwnKeyValue(newEndpoints, (endpointUri, endpoint) => {
+        for (let [endpointUri, endpoint] of utils.objectEntries(newEndpoints)) {
             debug.info(`Adding '${label}' endpoint - '${endpointUri}'.`);
             connections[endpointUri] = createConnectionFunc(this, endpoint);
-        });
+        }
 
         // For any current endpoint, make sure they are running.
-        utils.forEachOwnKeyValue(connections, (endpointUri, connection) => {
+        for (let [endpointUri, connection] of utils.objectEntries(connections)) {
             var endpoint = preferredEndpointsMap[endpointUri];
             connection.refresh(endpoint);
-        });
-    }    
+        }
+    }
 }
 
 module.exports = Engine;

@@ -92,12 +92,39 @@ var replaceStart = function(str, find, replace) {
     return replace + str.substring(find.length);
 };
 
+var objectEntries = function(obj) {
+    let index = 0;
+
+    let propKeys = [];
+    for(var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            propKeys.push(key);
+        }
+    }
+
+    return {
+        [Symbol.iterator]() {
+            return this;
+        },
+        next() {
+            if (index < propKeys.length) {
+                let key = propKeys[index];
+                index++;
+                return { value: [key, obj[key]] };
+            } else {
+                return { done: true };
+            }
+        }
+    };
+}
+
 module.exports = {
     findInArray,
     isInArray,
     removeFromArray,
     toAbsoluteUri,
     forEachOwnKeyValue,
+    objectEntries,
     getOrCreateKey,
     beginsWith,
     replaceStart
