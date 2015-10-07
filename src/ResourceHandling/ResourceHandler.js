@@ -2,8 +2,8 @@ var utils = require('utils');
 var debug = require('console');
 
 class ResourceHandler {
-    constructor(resourceHandlerFactory, uri) {
-        this.resourceHandlerFactory = resourceHandlerFactory;
+    constructor(engine, uri) {
+        this._engine = engine;
         this.uri = uri;
 
         this._aspects = {};
@@ -53,7 +53,7 @@ class ResourceHandler {
     }
 
     addEvent(type) {
-        var engineUnit = this.resourceHandlerFactory.engine.findEngineUnitForEvent(type);
+        var engineUnit = this._engine.findEngineUnitForEvent(type);
         var interestType = engineUnit != null ? engineUnit.interestType : null;
         if (interestType != null && !(interestType in this._aspects)) {
             var aspect = engineUnit.createAspect(this);

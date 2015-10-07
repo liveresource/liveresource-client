@@ -2,10 +2,17 @@ var utils = require('utils');
 var debug = require('console');
 var mapWebSocketUrls = require('utils.mapWebSocketUrls');
 
+var ResourceHandler = require('ResourceHandling/ResourceHandler');
+
 class Engine {
     constructor() {
+        this._resources = {};
         this._engineUnits = [];
         this._updatePending = false;
+    }
+
+    getHandlerForUri(uri) {
+        return utils.getOrCreateKey(this._resources, uri, () => new ResourceHandler(this, uri));
     }
 
     update() {
