@@ -11,12 +11,9 @@ engine.addEngineUnit(new ValueEngineUnit());
 var ChangesEngineUnit = require('EngineUnits/Changes/ChangesEngineUnit');
 engine.addEngineUnit(new ChangesEngineUnit());
 
-// 3. Create a new LiveResourceFactory and pass in the Engine.
-var LiveResourceFactory = require('ResourceHandling/LiveResourceFactory');
-var liveResourceFactory = new LiveResourceFactory(engine);
-
-// 4. Call getCreate() of the LiveResourceFactory, which returns
-//   a class whose constructor will create a LiveResource instance.
-var liveResourceClass = liveResourceFactory.getLiveResourceClass();
+// 3. Create a constructor that would create LiveResource instances
+// associated with this engine.
+var LiveResource = require('ResourceHandling/LiveResource');
+var liveResourceClass = LiveResource.createLiveResourceConstructorWithEngine(engine);
 
 module.exports = liveResourceClass;

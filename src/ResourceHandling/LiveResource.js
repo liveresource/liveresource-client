@@ -29,6 +29,14 @@ class LiveResource {
             this._resourceHandler = null;
         }
     }
+
+    static createLiveResourceConstructorWithEngine(engine) {
+        return class {
+            constructor(uri) {
+                return new LiveResource(engine, uri);
+            }
+        };
+    }
 }
 
 module.exports = LiveResource;
