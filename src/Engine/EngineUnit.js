@@ -13,10 +13,19 @@ class EngineUnit {
     addResourceHandler(resourceHandler, createResource) {
         var resource = utils.getOrCreateKey(this._resources, resourceHandler.uri, createResource);
         resource.owners.push(resourceHandler);
+        this.engine.update();
         return resource;
     }
 
+    createAspect(resourceHandler) {
+        return null;
+    }
+
     get interestType() {
+        return null;
+    }
+
+    get events() {
         return null;
     }
 
@@ -74,6 +83,7 @@ class EngineUnit {
             var endpoint = preferredEndpointsMap[endpointUri];
             connection.refresh(endpoint);
         }
-    }}
+    }
+}
 
 module.exports = EngineUnit;

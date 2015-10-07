@@ -1,8 +1,9 @@
+var ResourceHandlerFactory = require('ResourceHandling/ResourceHandlerFactory');
 var LiveResource = require('ResourceHandling/LiveResource');
 
 class LiveResourceFactory {
-    constructor(resourceHandlerFactory) {
-        this.resourceHandlerFactory = resourceHandlerFactory;
+    constructor(engine) {
+        this.resourceHandlerFactory = new ResourceHandlerFactory(engine);
     }
 
     getLiveResourceClass() {

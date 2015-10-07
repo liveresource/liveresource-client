@@ -1,6 +1,7 @@
 var utils = require('utils');
 
 var EngineUnit = require('Engine/EngineUnit');
+var ValueAspect = require('Aspects/Value/ValueAspect');
 var ValueWaitConnection = require('Aspects/Value/Engine/ValueWaitConnection');
 var MultiplexWebSocketConnection = require('Aspects/Value/Engine/MultiplexWebSocketConnection');
 var MultiplexWaitConnection = require('Aspects/Value/Engine/MultiplexWaitConnection');
@@ -70,8 +71,16 @@ class ValueEngineUnit extends EngineUnit {
 
     }
 
+    createAspect(resourceHandler) {
+        return new ValueAspect(resourceHandler, this);
+    }
+
     get interestType() {
         return 'value';
+    }
+
+    get events() {
+        return ['value', 'removed'];
     }
 }
 

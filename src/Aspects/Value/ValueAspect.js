@@ -8,8 +8,8 @@ var mapWebSocketUrls = require('utils.mapWebSocketUrls');
 var parseLinkHeader = require('utils.parseLinkHeader');
 
 class ValueAspect extends Aspect {
-    constructor(resourceHandler) {
-        super(resourceHandler);
+    constructor(resourceHandler, engineUnit) {
+        super(resourceHandler, engineUnit);
     }
 
     start() {
@@ -24,8 +24,7 @@ class ValueAspect extends Aspect {
                     this._resourceHandler.trigger('value', this._resourceHandler, result);
                 }
                 if (headerValues.etag) {
-                    var engine = this._resourceHandler.resourceHandlerFactory.engine;
-                    engine.addResourceHandler(this._resourceHandler, ValueAspect.InterestType, () => new ValueResource(
+                    this._engineUnit.addResourceHandler(this._resourceHandler, () => new ValueResource(
                         this._resourceHandler.uri,
                         headerValues.etag,
                         headerValues.valueWaitUri,
@@ -98,9 +97,6 @@ class ValueAspect extends Aspect {
 
         return result;
     }
-
-    static get InterestType() { return 'value'; }
-    static get Events() { return ['value', 'removed']; }
 }
 
 module.exports = ValueAspect;

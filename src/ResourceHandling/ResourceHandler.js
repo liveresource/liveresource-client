@@ -53,11 +53,11 @@ class ResourceHandler {
     }
 
     addEvent(type) {
-        var interestType = this.resourceHandlerFactory.findInterestTypeForEvent(type);
-        if (!(interestType in this._aspects)) {
-            var aspectClass = this.resourceHandlerFactory.getAspectClass(interestType);
-            if (aspectClass != null) {
-                var aspect = new aspectClass(this);
+        var engineUnit = this.resourceHandlerFactory.engine.findEngineUnitForEvent(type);
+        var interestType = engineUnit != null ? engineUnit.interestType : null;
+        if (interestType != null && !(interestType in this._aspects)) {
+            var aspect = engineUnit.createAspect(this);
+            if (aspect != null) {
                 this._aspects[interestType] = aspect;
                 aspect.start();
             }

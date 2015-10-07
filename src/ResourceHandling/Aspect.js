@@ -1,6 +1,7 @@
 class Aspect {
-    constructor(resourceHandler) {
+    constructor(resourceHandler, engineUnit) {
         this._resourceHandler = resourceHandler;
+        this._engineUnit = engineUnit;
     }
 }
 

@@ -7,8 +7,8 @@ var ChangesResource = require('Aspects/Changes/Engine/ChangesResource');
 var parseLinkHeader = require('utils.parseLinkHeader');
 
 class ChangesAspect extends Aspect {
-    constructor(resourceHandler) {
-        super(resourceHandler);
+    constructor(resourceHandler, engineUnit) {
+        super(resourceHandler, engineUnit);
         this.started = false;
     }
 
@@ -30,8 +30,7 @@ class ChangesAspect extends Aspect {
                     }
                 }
                 if (headerValues.changesWaitUri) {
-                    var engine = this._resourceHandler.resourceHandlerFactory.engine;
-                    engine.addResourceHandler(this._resourceHandler, ChangesAspect.InterestType, () => new ChangesResource(
+                    this._engineUnit.addResourceHandler(this._resourceHandler, () => new ChangesResource(
                         this._resourceHandler.uri,
                         headerValues.changesWaitUri
                     ));
@@ -74,9 +73,6 @@ class ChangesAspect extends Aspect {
 
         return result;
     }
-
-    static get InterestType() { return 'changes'; }
-    static get Events() { return ['child-added', 'child-removed']; }
 }
 
 module.exports = ChangesAspect;

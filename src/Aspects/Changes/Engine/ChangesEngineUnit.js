@@ -1,8 +1,8 @@
 var utils = require('utils');
 
 var EngineUnit = require('Engine/EngineUnit');
+var ChangesAspect = require('Aspects/Changes/ChangesAspect');
 var ChangesWaitConnection = require('Aspects/Changes/Engine/ChangesWaitConnection');
-var ChangesResource = require('Aspects/Changes/Engine/ChangesResource');
 
 class ChangesEngineUnit extends EngineUnit {
     constructor() {
@@ -34,8 +34,16 @@ class ChangesEngineUnit extends EngineUnit {
 
     }
 
+    createAspect(resourceHandler) {
+        return new ChangesAspect(resourceHandler, this);
+    }
+
     get interestType() {
         return 'changes';
+    }
+
+    get events() {
+        return ['child-added', 'child-removed'];
     }
 }
 

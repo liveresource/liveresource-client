@@ -28,20 +28,19 @@ class Engine {
         });
     }
 
-    addResourceHandler(resourceHandler, interestType, createResource) {
-        for(var i = 0; i < this._engineUnits.length; i++) {
-            var engineUnit = this._engineUnits[i];
-            if (engineUnit.interestType == interestType) {
-                engineUnit.addResourceHandler(resourceHandler, createResource);
-                this.update();
-                break;
-            }
-        }
-    }
-
     addEngineUnit(engineUnit) {
         this._engineUnits.push(engineUnit);
         engineUnit.engine = this;
+    }
+
+    findEngineUnitForEvent(eventName) {
+        for (var i = 0; i < this._engineUnits.length; i++) {
+            var engineUnit = this._engineUnits[i];
+            if (utils.findInArray(engineUnit.events, eventName) >= 0) {
+                return engineUnit;
+            }
+        }
+        return null;
     }
 }
 
