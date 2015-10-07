@@ -9,20 +9,23 @@ class Engine {
     }
 
     update() {
-        if (!this._updatePending) {
-            this._updatePending = true;
-            process.nextTick(() => {
-                this._updatePending = false;
-
-                // restart our long poll
-                debug.info('engine: setup long polls');
-
-                for(var i = 0; i < this._engineUnits.length; i++) {
-                    var engineUnit = this._engineUnits[i];
-                    engineUnit.update();
-                }
-            });
+        if (this._updatePending) {
+            // Do nothing if we already have a pending update,
+            return;
         }
+        this._updatePending = true;
+        
+        process.nextTick(() => {
+            this._updatePending = false;
+
+            // restart our long poll
+            debug.info('engine: setup long polls');
+
+            for(var i = 0; i < this._engineUnits.length; i++) {
+                var engineUnit = this._engineUnits[i];
+                engineUnit.update();
+            }
+        });
     }
 
     addResourceHandler(resourceHandler, interestType, createResource) {

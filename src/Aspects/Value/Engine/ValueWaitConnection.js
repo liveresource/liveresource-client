@@ -1,6 +1,5 @@
 var utils = require('utils');
 var debug = require('console');
-var parseLinkHeader = require('utils.parseLinkHeader');
 var Pollymer = require('Pollymer');
 
 var Connection = require('Engine/Connection');
