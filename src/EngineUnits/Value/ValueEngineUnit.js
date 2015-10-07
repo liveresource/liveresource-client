@@ -1,12 +1,12 @@
 var utils = require('utils');
 
-var EngineUnit = require('Engine/EngineUnit');
+var EngineUnitBase = require('EngineUnits/EngineUnitBase');
 var ValueAspect = require('EngineUnits/Value/ValueAspect');
 var ValueWaitConnection = require('EngineUnits/Value/ValueWaitConnection');
 var MultiplexWebSocketConnection = require('EngineUnits/Value/MultiplexWebSocketConnection');
 var MultiplexWaitConnection = require('EngineUnits/Value/MultiplexWaitConnection');
 
-class ValueEngineUnit extends EngineUnit {
+class ValueEngineUnit extends EngineUnitBase {
     constructor() {
         super();
 

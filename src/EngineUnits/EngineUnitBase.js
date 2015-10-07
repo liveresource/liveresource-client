@@ -1,7 +1,7 @@
 var utils = require('utils');
 var debug = require('console');
 
-class EngineUnit {
+class EngineUnitBase {
     constructor() {
         this.engine = null;
         this._resources = {};
@@ -86,4 +86,4 @@ class EngineUnit {
     }
 }
 
-module.exports = EngineUnit;
+module.exports = EngineUnitBase;

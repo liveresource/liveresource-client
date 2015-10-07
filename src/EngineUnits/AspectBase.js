@@ -1,8 +1,8 @@
-class Aspect {
+class AspectBase {
     constructor(resourceHandler, engineUnit) {
         this._resourceHandler = resourceHandler;
         this._engineUnit = engineUnit;
     }
 }
 
-module.exports = Aspect;
+module.exports = AspectBase;

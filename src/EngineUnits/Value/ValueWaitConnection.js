@@ -2,9 +2,9 @@ var utils = require('utils');
 var debug = require('console');
 var Pollymer = require('Pollymer');
 
-var Connection = require('Engine/Connection');
+var ConnectionBase = require('EngineUnits/ConnectionBase');
 
-class ValueWaitConnection extends Connection {
+class ValueWaitConnection extends ConnectionBase {
     constructor(engine, endpoint) {
         super(engine);
 

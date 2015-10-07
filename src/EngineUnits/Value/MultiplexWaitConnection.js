@@ -3,9 +3,9 @@ var debug = require('console');
 var Pollymer = require('Pollymer');
 
 var ValueResource = require('EngineUnits/Value/ValueResource');
-var Connection = require('Engine/Connection');
+var ConnectionBase = require('EngineUnits/ConnectionBase');
 
-class MultiplexWaitConnection extends Connection {
+class MultiplexWaitConnection extends ConnectionBase {
     constructor(engine, endpoint, resources) {
         super(engine);
 

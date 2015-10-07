@@ -1,4 +1,4 @@
-class Connection {
+class ConnectionBase {
     constructor(engine) {
         this._engine = engine;
     }
@@ -14,4 +14,4 @@ class Connection {
     }
 }
 
-module.exports = Connection;
+module.exports = ConnectionBase;

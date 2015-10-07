@@ -1,13 +1,13 @@
 var utils = require('utils');
 var debug = require('console');
 var Pollymer = require('Pollymer');
-var Aspect = require('ResourceHandling/Aspect');
+var AspectBase = require('EngineUnits/AspectBase');
 var ValueResource = require('EngineUnits/Value/ValueResource');
 
 var mapWebSocketUrls = require('utils.mapWebSocketUrls');
 var parseLinkHeader = require('utils.parseLinkHeader');
 
-class ValueAspect extends Aspect {
+class ValueAspect extends AspectBase {
     constructor(resourceHandler, engineUnit) {
         super(resourceHandler, engineUnit);
     }

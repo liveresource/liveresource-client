@@ -1,9 +1,9 @@
 var utils = require('utils');
 
 var ValueEngineUnit = require('EngineUnits/Value/ValueEngineUnit');
-var EngineResource = require('Engine/EngineResource');
+var ResourceBase = require('EngineUnits/ResourceBase');
 
-class ValueResource extends EngineResource {
+class ValueResource extends ResourceBase {
     constructor(uri, etag, valueWaitUri, multiplexWaitUri, multiplexWebSocketUri) {
         super(uri);
         this.etag = etag;

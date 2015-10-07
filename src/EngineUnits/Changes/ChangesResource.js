@@ -1,9 +1,9 @@
 var utils = require('utils');
 var parseLinkHeader = require('utils.parseLinkHeader');
 
-var EngineResource = require('Engine/EngineResource');
+var ResourceBase = require('EngineUnits/ResourceBase');
 
-class ChangesResource extends EngineResource {
+class ChangesResource extends ResourceBase {
     constructor(uri, changesWaitUri) {
         super(uri);
         this.changesWaitUri = changesWaitUri;

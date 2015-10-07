@@ -3,10 +3,10 @@ var debug = require('console');
 var mapWebSocketUrls = require('utils.mapWebSocketUrls');
 var WebSockHop = require('WebSockHop');
 
-var Connection = require('Engine/Connection');
+var ConnectionBase = require('EngineUnits/ConnectionBase');
 var ValueResource = require('EngineUnits/Value/ValueResource');
 
-class MultiplexWebSocketConnection extends Connection {
+class MultiplexWebSocketConnection extends ConnectionBase {
     constructor(engine, endpoint, resources) {
         super(engine);
 

@@ -1,10 +1,10 @@
 var utils = require('utils');
 
-var EngineUnit = require('Engine/EngineUnit');
+var EngineUnitBase = require('EngineUnits/EngineUnitBase');
 var ChangesAspect = require('EngineUnits/Changes/ChangesAspect');
 var ChangesWaitConnection = require('EngineUnits/Changes/ChangesWaitConnection');
 
-class ChangesEngineUnit extends EngineUnit {
+class ChangesEngineUnit extends EngineUnitBase {
     constructor() {
         super();
 
