@@ -2,7 +2,7 @@ var utils = require('utils');
 var debug = require('console');
 var Pollymer = require('Pollymer');
 
-var ValueResource = require('Aspects/Value/Engine/ValueResource');
+var ValueResource = require('EngineUnits/Value/ValueResource');
 var Connection = require('Engine/Connection');
 
 class MultiplexWaitConnection extends Connection {

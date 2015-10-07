@@ -4,7 +4,7 @@ var mapWebSocketUrls = require('utils.mapWebSocketUrls');
 var WebSockHop = require('WebSockHop');
 
 var Connection = require('Engine/Connection');
-var ValueResource = require('Aspects/Value/Engine/ValueResource');
+var ValueResource = require('EngineUnits/Value/ValueResource');
 
 class MultiplexWebSocketConnection extends Connection {
     constructor(engine, endpoint, resources) {

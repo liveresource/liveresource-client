@@ -1,10 +1,10 @@
 var utils = require('utils');
 
 var EngineUnit = require('Engine/EngineUnit');
-var ValueAspect = require('Aspects/Value/ValueAspect');
-var ValueWaitConnection = require('Aspects/Value/Engine/ValueWaitConnection');
-var MultiplexWebSocketConnection = require('Aspects/Value/Engine/MultiplexWebSocketConnection');
-var MultiplexWaitConnection = require('Aspects/Value/Engine/MultiplexWaitConnection');
+var ValueAspect = require('EngineUnits/Value/ValueAspect');
+var ValueWaitConnection = require('EngineUnits/Value/ValueWaitConnection');
+var MultiplexWebSocketConnection = require('EngineUnits/Value/MultiplexWebSocketConnection');
+var MultiplexWaitConnection = require('EngineUnits/Value/MultiplexWaitConnection');
 
 class ValueEngineUnit extends EngineUnit {
     constructor() {

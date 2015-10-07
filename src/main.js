@@ -5,10 +5,10 @@ var Engine = require('Engine/Engine');
 var engine = new Engine();
 
 // 2. Add engine units
-var ValueEngineUnit = require('Aspects/Value/Engine/ValueEngineUnit');
+var ValueEngineUnit = require('EngineUnits/Value/ValueEngineUnit');
 engine.addEngineUnit(new ValueEngineUnit());
 
-var ChangesEngineUnit = require('Aspects/Changes/Engine/ChangesEngineUnit');
+var ChangesEngineUnit = require('EngineUnits/Changes/ChangesEngineUnit');
 engine.addEngineUnit(new ChangesEngineUnit());
 
 // 3. Create a new LiveResourceFactory and pass in the Engine.

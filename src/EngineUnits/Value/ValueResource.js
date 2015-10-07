@@ -1,6 +1,6 @@
 var utils = require('utils');
 
-var ValueEngineUnit = require('Aspects/Value/Engine/ValueEngineUnit');
+var ValueEngineUnit = require('EngineUnits/Value/ValueEngineUnit');
 var EngineResource = require('Engine/EngineResource');
 
 class ValueResource extends EngineResource {

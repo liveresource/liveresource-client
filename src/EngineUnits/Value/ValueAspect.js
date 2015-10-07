@@ -2,7 +2,7 @@ var utils = require('utils');
 var debug = require('console');
 var Pollymer = require('Pollymer');
 var Aspect = require('ResourceHandling/Aspect');
-var ValueResource = require('Aspects/Value/Engine/ValueResource');
+var ValueResource = require('EngineUnits/Value/ValueResource');
 
 var mapWebSocketUrls = require('utils.mapWebSocketUrls');
 var parseLinkHeader = require('utils.parseLinkHeader');

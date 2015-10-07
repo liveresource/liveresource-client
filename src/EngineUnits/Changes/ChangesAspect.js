@@ -2,7 +2,7 @@ var utils = require('utils');
 var debug = require('console');
 var Pollymer = require('Pollymer');
 var Aspect = require('ResourceHandling/Aspect');
-var ChangesResource = require('Aspects/Changes/Engine/ChangesResource');
+var ChangesResource = require('EngineUnits/Changes/ChangesResource');
 
 var parseLinkHeader = require('utils.parseLinkHeader');
 

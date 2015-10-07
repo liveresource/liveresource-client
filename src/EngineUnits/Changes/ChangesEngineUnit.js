@@ -1,8 +1,8 @@
 var utils = require('utils');
 
 var EngineUnit = require('Engine/EngineUnit');
-var ChangesAspect = require('Aspects/Changes/ChangesAspect');
-var ChangesWaitConnection = require('Aspects/Changes/Engine/ChangesWaitConnection');
+var ChangesAspect = require('EngineUnits/Changes/ChangesAspect');
+var ChangesWaitConnection = require('EngineUnits/Changes/ChangesWaitConnection');
 
 class ChangesEngineUnit extends EngineUnit {
     constructor() {
