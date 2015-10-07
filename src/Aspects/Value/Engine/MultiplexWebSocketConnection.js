@@ -52,7 +52,7 @@ class MultiplexWebSocketConnection extends Connection {
         var type = 'subscribe', mode = 'value';
         this.socket.request({type, mode, uri}, result => {
             if (result.type == 'subscribed') {
-                connection.subscribedItems[uri] = uri;
+                this.subscribedItems[uri] = uri;
             }
         });
     }
@@ -61,7 +61,7 @@ class MultiplexWebSocketConnection extends Connection {
         var type = 'unsubscribe', mode = 'value';
         this.socket.request({type, mode, uri}, result => {
             if (result.type == 'unsubscribed') {
-                delete connection.subscribedItems[uri];
+                delete this.subscribedItems[uri];
             }
         })
     }
