@@ -25,7 +25,7 @@ class ChangesEngineUnit extends EngineUnit {
             changesWaitEndpoints[endpointUri] = { endpointUri, item: endpoint };
         }
 
-        this.engine.adjustEndpoints(
+        this._adjustEndpoints(
             'Changes Wait',
             this._changesWaitConnections,
             changesWaitEndpoints,

@@ -49,19 +49,19 @@ class ValueEngineUnit extends EngineUnit {
             valueWaitEndpoints[endpointUri] = { endpointUri, item: endpoint };
         }
 
-        this.engine.adjustEndpoints(
+        this._adjustEndpoints(
             'Value Wait',
             this._valueWaitConnections,
             valueWaitEndpoints,
             (engine, endpoint) => new ValueWaitConnection(engine, endpoint)
         );
-        this.engine.adjustEndpoints(
+        this._adjustEndpoints(
             'Multiplex Web Socket',
             this._multiplexWebSocketConnections,
             multiplexWebSocketEndpoints,
             (engine, endpoint) => new MultiplexWebSocketConnection(engine, endpoint, this._resources)
         );
-        this.engine.adjustEndpoints(
+        this._adjustEndpoints(
             'Multiplex Wait',
             this._multipleWaitConnections,
             multiplexWaitEndpoints,
