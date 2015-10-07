@@ -117,6 +117,10 @@ class MultiplexWebSocketConnection extends ConnectionBase {
             this.checkSubscriptions(endpoint.items);
         }
     }
+
+    static get isWebSockHopAvailable() {
+        return WebSockHop.isAvailable();
+    }
 }
 
 module.exports = MultiplexWebSocketConnection;

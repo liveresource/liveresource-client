@@ -22,7 +22,7 @@ class ValueEngineUnit extends EngineUnitBase {
         var multiplexWaitItems = new Map();
 
         for (let [resUri, res] of this._resources) {
-            if (res.multiplexWebSocketUri) {
+            if (MultiplexWebSocketConnection.isWebSockHopAvailable && res.multiplexWebSocketUri) {
                 var multiplexWebSocketPoll = multiplexWebSocketItems.getOrCreate(res.multiplexWebSocketUri, () => ({items: []}));
                 multiplexWebSocketPoll.items.push(res);
             } else if (res.multiplexWaitUri) {
