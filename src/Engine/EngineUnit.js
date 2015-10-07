@@ -15,7 +15,7 @@ class EngineUnit {
         return resource;
     }
 
-    get InterestType() {
+    get interestType() {
         return null;
     }
 }

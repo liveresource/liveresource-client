@@ -6,7 +6,7 @@ var ValueResource = require('Aspects/Value/Engine/ValueResource');
 var Connection = require('Engine/Connection');
 
 class MultiplexWaitConnection extends Connection {
-    constructor(engine, endpoint, engineUnit) {
+    constructor(engine, endpoint, resources) {
         super(engine);
 
         this.uri = endpoint.endpointUri;
@@ -23,7 +23,7 @@ class MultiplexWaitConnection extends Connection {
 
                     debug.info(`got data for uri: ${uri}`);
                     var absoluteUri = utils.toAbsoluteUri(this.uri, uri);
-                    ValueResource.updateValueItemMultiplex(engineUnit._resources, absoluteUri, item.headers, item.body);
+                    ValueResource.updateValueItemMultiplex(resources, absoluteUri, item.headers, item.body);
 
                 });
 

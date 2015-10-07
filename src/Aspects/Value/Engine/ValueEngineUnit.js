@@ -1,17 +1,17 @@
 var utils = require('utils');
 
 var EngineUnit = require('Engine/EngineUnit');
-var ValueResource = require('Aspects/Value/Engine/ValueResource');
-var ValueWaitConnectionsMap = require('Aspects/Value/Engine/ValueWaitConnectionsMap');
-var MultiplexWebSocketConnectionsMap = require('Aspects/Value/Engine/MultiplexWebSocketConnectionsMap');
-var MultiplexWaitConnectionsMap = require('Aspects/Value/Engine/MultiplexWaitConnectionsMap');
+var ValueWaitConnection = require('Aspects/Value/Engine/ValueWaitConnection');
+var MultiplexWebSocketConnection = require('Aspects/Value/Engine/MultiplexWebSocketConnection');
+var MultiplexWaitConnection = require('Aspects/Value/Engine/MultiplexWaitConnection');
 
 class ValueEngineUnit extends EngineUnit {
-    constructor(engine) {
-        super(engine);
-        this._valueWaitConnectionsMap = new ValueWaitConnectionsMap(this);
-        this._multiplexWebSocketConnectionsMap = new MultiplexWebSocketConnectionsMap(this);
-        this._multiplexWaitConnectionsMap = new MultiplexWaitConnectionsMap(this);
+    constructor() {
+        super();
+
+        this._valueWaitConnections = {};
+        this._multiplexWebSocketConnections = {};
+        this._multipleWaitConnections = {};
     }
 
     update() {
@@ -49,13 +49,28 @@ class ValueEngineUnit extends EngineUnit {
             valueWaitEndpoints[endpointUri] = { endpointUri, item: endpoint };
         });
 
-        this._valueWaitConnectionsMap.adjustEndpoints(valueWaitEndpoints);
-        this._multiplexWebSocketConnectionsMap.adjustEndpoints(multiplexWebSocketEndpoints);
-        this._multiplexWaitConnectionsMap.adjustEndpoints(multiplexWaitEndpoints);
+        this.engine.adjustEndpoints(
+            'Value Wait',
+            this._valueWaitConnections,
+            valueWaitEndpoints,
+            (engine, endpoint) => new ValueWaitConnection(engine, endpoint)
+        );
+        this.engine.adjustEndpoints(
+            'Multiplex Web Socket',
+            this._multiplexWebSocketConnections,
+            multiplexWebSocketEndpoints,
+            (engine, endpoint) => new MultiplexWebSocketConnection(engine, endpoint, this._resources)
+        );
+        this.engine.adjustEndpoints(
+            'Multiplex Wait',
+            this._multipleWaitConnections,
+            multiplexWaitEndpoints,
+            (engine, endpoint) => new MultiplexWaitConnection(engine, endpoint, this._resources)
+        );
 
     }
 
-    get InterestType() {
+    get interestType() {
         return 'value';
     }
 }

@@ -1,13 +1,14 @@
 var utils = require('utils');
 
 var EngineUnit = require('Engine/EngineUnit');
-var ChangesWaitConnectionsMap = require('Aspects/Changes/Engine/ChangesWaitConnectionsMap');
+var ChangesWaitConnection = require('Aspects/Changes/Engine/ChangesWaitConnection');
 var ChangesResource = require('Aspects/Changes/Engine/ChangesResource');
 
 class ChangesEngineUnit extends EngineUnit {
-    constructor(engine) {
-        super(engine);
-        this._changesWaitConnectionsMap = new ChangesWaitConnectionsMap(this);
+    constructor() {
+        super();
+
+        this._changesWaitConnections = {};
     }
 
     update() {
@@ -23,12 +24,17 @@ class ChangesEngineUnit extends EngineUnit {
         utils.forEachOwnKeyValue(changesWaitItems, (endpointUri, endpoint) => {
             changesWaitEndpoints[endpointUri] = { endpointUri, item: endpoint };
         });
-
-        this._changesWaitConnectionsMap.adjustEndpoints(changesWaitEndpoints);
+        
+        this.engine.adjustEndpoints(
+            'Changes Wait',
+            this._changesWaitConnections,
+            changesWaitEndpoints,
+            (engine, endpoint) => new ChangesWaitConnection(engine, endpoint)
+        );
 
     }
 
-    get InterestType() {
+    get interestType() {
         return 'changes';
     }
 }
