@@ -10,44 +10,44 @@ class ValueEngineUnit extends EngineUnitBase {
     constructor() {
         super();
 
-        this._valueWaitConnections = {};
-        this._multiplexWebSocketConnections = {};
-        this._multipleWaitConnections = {};
+        this._valueWaitConnections = new Map();
+        this._multiplexWebSocketConnections = new Map();
+        this._multipleWaitConnections = new Map();
     }
 
     update() {
 
-        var valueWaitItems = {};
-        var multiplexWebSocketItems = {};
-        var multiplexWaitItems = {};
+        var valueWaitItems = new Map();
+        var multiplexWebSocketItems = new Map();
+        var multiplexWaitItems = new Map();
 
-        for (let [resUri, res] of utils.objectEntries(this._resources)) {
+        for (let [resUri, res] of this._resources) {
             if (res.multiplexWebSocketUri) {
-                var multiplexWebSocketPoll = utils.getOrCreateKey(multiplexWebSocketItems, res.multiplexWebSocketUri, () => ({items: []}));
+                var multiplexWebSocketPoll = multiplexWebSocketItems.getOrCreate(res.multiplexWebSocketUri, () => ({items: []}));
                 multiplexWebSocketPoll.items.push(res);
             } else if (res.multiplexWaitUri) {
-                var multiplexWaitPoll = utils.getOrCreateKey(multiplexWaitItems, res.multiplexWaitUri, () => ({items: []}));
+                var multiplexWaitPoll = multiplexWaitItems.getOrCreate(res.multiplexWaitUri, () => ({items: []}));
                 multiplexWaitPoll.items.push(res);
             } else {
-                valueWaitItems[res.valueWaitUri] = res;
+                valueWaitItems.set(res.valueWaitUri, res);
             }
         }
 
-        var valueWaitEndpoints = {};
-        var multiplexWebSocketEndpoints = {};
-        var multiplexWaitEndpoints = {};
-        for (let [endpointUri, endpoint] of utils.objectEntries(multiplexWebSocketItems)) {
-            multiplexWebSocketEndpoints[endpointUri] = { endpointUri, items: endpoint.items };
+        var valueWaitEndpoints = new Map();
+        var multiplexWebSocketEndpoints = new Map();
+        var multiplexWaitEndpoints = new Map();
+        for (let [endpointUri, endpoint] of multiplexWebSocketItems) {
+            multiplexWebSocketEndpoints.set(endpointUri, { endpointUri, items: endpoint.items });
         }
-        for (let [endpointUri, endpoint] of utils.objectEntries(multiplexWaitItems)) {
+        for (let [endpointUri, endpoint] of multiplexWaitItems) {
             if (endpoint.items.length > 1 || !endpoint.items[0].valueWaitUri) {
-                multiplexWaitEndpoints[endpointUri] = { endpointUri, items: endpoint.items };
+                multiplexWaitEndpoints.set(endpointUri, { endpointUri, items: endpoint.items });
             } else {
-                valueWaitItems[endpoint.items[0].valueWaitUri] = endpoint.items[0];
+                valueWaitItems.set(endpoint.items[0].valueWaitUri, endpoint.items[0]);
             }
         }
-        for (let [endpointUri, endpoint] of utils.objectEntries(valueWaitItems)) {
-            valueWaitEndpoints[endpointUri] = { endpointUri, item: endpoint };
+        for (let [endpointUri, endpoint] of valueWaitItems) {
+            valueWaitEndpoints.set(endpointUri, { endpointUri, item: endpoint });
         }
 
         this._adjustEndpoints(

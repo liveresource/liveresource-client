@@ -31,11 +31,11 @@ class ValueResource extends ResourceBase {
 
     static updateValueItemMultiplex(resources, uri, headers, result) {
 
-        utils.forEachOwnKeyValue(resources, (resourceUri, resource) => {
+        for (var [resourceUri, resource] of resources) {
             if (resourceUri == uri) {
                 resource.updateItem(headers, result);
             }
-        });
+        }
 
     }
 }

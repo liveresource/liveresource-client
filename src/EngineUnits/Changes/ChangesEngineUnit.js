@@ -8,21 +8,21 @@ class ChangesEngineUnit extends EngineUnitBase {
     constructor() {
         super();
 
-        this._changesWaitConnections = {};
+        this._changesWaitConnections = new Map();
     }
 
     update() {
 
-        var changesWaitItems = {};
-        for (let [resUri, res] of utils.objectEntries(this._resources)) {
+        var changesWaitItems = new Map();
+        for (let [resUri, res] of this._resources) {
             if (res.changesWaitUri) {
-                changesWaitItems[res.changesWaitUri] = res;
+                changesWaitItems.set(res.changesWaitUri, res);
             }
         }
 
-        var changesWaitEndpoints = {};
-        for (let [endpointUri, endpoint] of utils.objectEntries(changesWaitItems)) {
-            changesWaitEndpoints[endpointUri] = { endpointUri, item: endpoint };
+        var changesWaitEndpoints = new Map();
+        for (let [endpointUri, endpoint] of changesWaitItems) {
+            changesWaitEndpoints.set(endpointUri, { endpointUri, item: endpoint });
         }
 
         this._adjustEndpoints(

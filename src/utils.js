@@ -77,13 +77,6 @@ var forEachOwnKeyValue = function(obj, predicate) {
     }
 };
 
-var getOrCreateKey = function(obj, key, create) {
-    if (!(key in obj)) {
-        obj[key] = create();
-    }
-    return obj[key];
-};
-
 var beginsWith = function(str, find) {
     return str.substring(0, find.length) == find;
 };
@@ -125,7 +118,17 @@ module.exports = {
     toAbsoluteUri,
     forEachOwnKeyValue,
     objectEntries,
-    getOrCreateKey,
     beginsWith,
     replaceStart
+};
+
+Map.prototype.getOrCreate = function (key, create) {
+    let obj;
+    if (!this.has(key)) {
+        obj = create();
+        this.set(key, obj);
+    } else {
+        obj = this.get(key);
+    }
+    return obj;
 };

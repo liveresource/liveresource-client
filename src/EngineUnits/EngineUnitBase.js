@@ -4,14 +4,14 @@ var debug = require('console');
 class EngineUnitBase {
     constructor() {
         this.engine = null;
-        this._resources = {};
+        this._resources = new Map();
     }
 
     update() {
     }
 
     addResourceHandler(resourceHandler, createResource) {
-        var resource = utils.getOrCreateKey(this._resources, resourceHandler.uri, createResource);
+        var resource = this._resources.getOrCreate(resourceHandler.uri, createResource);
         resource.owners.push(resourceHandler);
         this.engine.update();
         return resource;
@@ -29,32 +29,32 @@ class EngineUnitBase {
         return null;
     }
 
-    _adjustEndpoints(label, connections, preferredEndpointsMap, createConnectionFunc) {
+    _adjustEndpoints(label, currentConnectionsMap, preferredEndpointsMap, createConnectionFunc) {
 
-        // connections is a mapping of endpointUri -> connection
-        // preferredEndpointsMap is a mapping of endpointUri -> endpoint
+        // currentConnectionsMap is a mapping of endpointUri -> connection
+        // preferredEndpointsMap is a mapping of endpointUri -> endpoint to update to
 
         // Keep track of list of new endpoints to enable
-        var newEndpoints = {};
-        for (let [endpointUri, endpoint] of utils.objectEntries(preferredEndpointsMap)) {
-            newEndpoints[endpointUri] = endpoint;
+        var newEndpoints = new Map();
+        for (let [endpointUri, endpoint] of preferredEndpointsMap) {
+            newEndpoints.set(endpointUri, endpoint);
         }
 
         // Make a list of endpoints to disable...
         var endpointsToDisable = [];
-        for (let [endpointUri, connection] of utils.objectEntries(connections)) {
+        for (let [endpointUri, connection] of currentConnectionsMap) {
             // This item is already known, so remove endpoint from "new endpoints".
-            delete newEndpoints[endpointUri];
+            newEndpoints.delete(endpointUri);
 
             var removedOrChanged = false;
-            if (!(endpointUri in preferredEndpointsMap)) {
+            if (!preferredEndpointsMap.has(endpointUri)) {
                 // If item is not in the preferred endpoints map, then it has been
                 // removed. Mark for disabling.
                 removedOrChanged = true;
             } else {
                 // If item is in the preferred endpoints map, then
                 // call "changeTest" to decide whether this item has changed.
-                var endpoint = preferredEndpointsMap[endpointUri];
+                var endpoint = preferredEndpointsMap.get(endpointUri);
                 removedOrChanged = connection.hasChanged(endpoint);
             }
             if (removedOrChanged) {
@@ -67,20 +67,20 @@ class EngineUnitBase {
         for (var i = 0; i < endpointsToDisable.length; i++) {
             var endpointUri = endpointsToDisable[i];
             debug.info(`Remove '${label}' endpoint - '${endpointUri}'.`);
-            var connection = connections[endpointUri];
+            var connection = currentConnectionsMap.get(endpointUri);
             connection.abort();
-            delete connections[endpointUri];
+            currentConnectionsMap.delete(endpointUri);
         }
 
         // Create new requests for endpoints that need them.
-        for (let [endpointUri, endpoint] of utils.objectEntries(newEndpoints)) {
+        for (let [endpointUri, endpoint] of newEndpoints) {
             debug.info(`Adding '${label}' endpoint - '${endpointUri}'.`);
-            connections[endpointUri] = createConnectionFunc(this, endpoint);
+            currentConnectionsMap.set(endpointUri, createConnectionFunc(this, endpoint));
         }
 
         // For any current endpoint, make sure they are running.
-        for (let [endpointUri, connection] of utils.objectEntries(connections)) {
-            var endpoint = preferredEndpointsMap[endpointUri];
+        for (let [endpointUri, connection] of currentConnectionsMap) {
+            var endpoint = preferredEndpointsMap.get(endpointUri);
             connection.refresh(endpoint);
         }
     }

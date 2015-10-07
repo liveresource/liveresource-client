@@ -6,13 +6,13 @@ var ResourceHandler = require('ResourceHandling/ResourceHandler');
 
 class Engine {
     constructor() {
-        this._resources = {};
+        this._resourceHandlers = new Map();
         this._engineUnits = [];
         this._updatePending = false;
     }
 
     getHandlerForUri(uri) {
-        return utils.getOrCreateKey(this._resources, uri, () => new ResourceHandler(this, uri));
+        return this._resourceHandlers.getOrCreate(uri, () => new ResourceHandler(this, uri));
     }
 
     update() {
