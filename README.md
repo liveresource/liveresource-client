@@ -3,7 +3,7 @@ LiveResource
 Authors: Justin Karneges <justin@fanout.io>, Katsuyuki Ohmuro <harmony7@pex2.jp>  
 Mailing List: http://lists.fanout.io/listinfo.cgi/fanout-users-fanout.io
 
-LiveResource is a JavaScript library and protocol specification for receiving live updates of RESTful resources.
+LiveResource is a JavaScript library and protocol specification for receiving live updates of web resources.
 
 License
 -------
