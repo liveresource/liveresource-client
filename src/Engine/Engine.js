@@ -15,6 +15,17 @@ class Engine {
         return this._resourceHandlers.getOrCreate(uri, () => new ResourceHandler(this, uri));
     }
 
+    getResourceAspectsForInterestType(interestType) {
+        var resourceAspects = [];
+        for (let [uri, resourceHandler] of this._resourceHandlers) {
+            var resourceAspect = resourceHandler.getResourceAspectForInterestType(interestType);
+            if (resourceAspect != null) {
+                resourceAspects.push(resourceAspect);
+            }
+        }
+        return resourceAspects;
+    }
+
     update() {
         if (this._updatePending) {
             // Do nothing if we already have a pending update,

@@ -1,7 +1,6 @@
 class ResourceBase {
-    constructor(uri) {
-        this.uri = uri;
-        this.owners = [];
+    constructor(resourceHandler) {
+        this.resourceHandler = resourceHandler;
     }
 }
 

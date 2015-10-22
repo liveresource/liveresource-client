@@ -4,7 +4,6 @@ var debug = require('console');
 class EngineUnitBase {
     constructor() {
         this.engine = null;
-        this._resources = new Map();
     }
 
     update() {
@@ -14,14 +13,7 @@ class EngineUnitBase {
         this.engine.update();
     }
 
-    addResource(resourceHandler, createResource) {
-        var resource = this._resources.getOrCreate(resourceHandler.uri, createResource);
-        resource.owners.push(resourceHandler);
-        this.engine.update();
-        return resource;
-    }
-
-    createAspect(resourceHandler) {
+    start(resourceHandler) {
         return null;
     }
 
@@ -34,18 +26,21 @@ class EngineUnitBase {
     }
 
     updateResources(uri, headers, result) {
-        for (var [resourceUri, resource] of this._resources) {
-            if (resourceUri == uri) {
-                this.updateResource(resource, headers, result);
-            }
+        var resourceHandler = this.engine.getHandlerForUri(uri);
+        var resourceAspect = resourceHandler.getResourceAspectForInterestType(this.interestType);
+        if (resourceAspect != null) {
+            this.updateResource(resourceAspect, headers, result);
         }
     }
 
     updateResource(resource, headers, result) {
-        for (var i = 0; i < resource.owners.length; i++) {
-            var owner = resource.owners[i];
-            this.triggerEvents(owner, result);
-        }
+        this.triggerEvents(resource, result);
+    }
+
+    triggerEvents(aspect, result) {
+    }
+
+    static parseHeaders(headers, baseUri) {
     }
 
     _adjustEndpoints(label, currentConnectionsMap, preferredEndpointsMap, createConnectionFunc) {

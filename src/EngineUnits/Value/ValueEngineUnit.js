@@ -4,7 +4,7 @@ var mapWebSocketUrls = require('utils.mapWebSocketUrls');
 var parseLinkHeader = require('utils.parseLinkHeader');
 
 var EngineUnitBase = require('EngineUnits/EngineUnitBase');
-var ValueAspect = require('EngineUnits/Value/ValueAspect');
+var ValueResource = require('EngineUnits/Value/ValueResource');
 var ValueWaitConnection = require('EngineUnits/Value/ValueWaitConnection');
 var MultiplexWebSocketConnection = require('EngineUnits/Value/MultiplexWebSocketConnection');
 var MultiplexWaitConnection = require('EngineUnits/Value/MultiplexWaitConnection');
@@ -15,16 +15,18 @@ class ValueEngineUnit extends EngineUnitBase {
 
         this._valueWaitConnections = new Map();
         this._multiplexWebSocketConnections = new Map();
-        this._multipleWaitConnections = new Map();
+        this._multiplexWaitConnections = new Map();
     }
 
     update() {
+
+        var resourceAspects = this.engine.getResourceAspectsForInterestType(this.interestType);
 
         var valueWaitItems = new Map();
         var multiplexWebSocketItems = new Map();
         var multiplexWaitItems = new Map();
 
-        for (let [resUri, res] of this._resources) {
+        for (let res of resourceAspects) {
             if (MultiplexWebSocketConnection.isWebSockHopAvailable && res.multiplexWebSocketUri) {
                 var multiplexWebSocketPoll = multiplexWebSocketItems.getOrCreate(res.multiplexWebSocketUri, () => ({items: []}));
                 multiplexWebSocketPoll.items.push(res);
@@ -67,15 +69,40 @@ class ValueEngineUnit extends EngineUnitBase {
         );
         this._adjustEndpoints(
             'Multiplex Wait',
-            this._multipleWaitConnections,
+            this._multiplexWaitConnections,
             multiplexWaitEndpoints,
             endpoint => new MultiplexWaitConnection(this, endpoint)
         );
 
     }
 
-    createAspect(resourceHandler) {
-        return new ValueAspect(resourceHandler, this);
+    start(resourceHandler) {
+        var resource = new ValueResource(resourceHandler);
+
+        var request = new Pollymer.Request();
+        request.on('finished', (code, result, headers) => {
+
+            if (code >= 200 && code < 400) {
+                // 304 if not changed, don't trigger value
+                this.updateResource(resource, headers, code < 300 ? result : null);
+
+                if (!resource.etag) {
+                    debug.info('no etag');
+                }
+                this.updateEngine();
+                request = null;
+            } else if (code >= 400) {
+                if (code == 404) {
+                    resourceHandler.trigger('removed', resourceHandler);
+                    request = null;
+                } else {
+                    request.retry();
+                }
+            }
+        });
+        request.start('GET', resourceHandler.uri);
+
+        return resource;
     }
 
     get interestType() {
@@ -88,15 +115,30 @@ class ValueEngineUnit extends EngineUnitBase {
 
     updateResource(resource, headers, result) {
 
-        var parsedHeaders = this.parseHeaders(headers, resource.uri);
+        var parsedHeaders = ValueEngineUnit.parseHeaders(headers, resource.resourceHandler.uri);
         if (parsedHeaders.etag) {
             resource.etag = parsedHeaders.etag;
+        }
+        if (parsedHeaders.valueWaitUri) {
+            resource.valueWaitUri = parsedHeaders.valueWaitUri;
+        }
+        if (parsedHeaders.multiplexWaitUri) {
+            resource.multiplexWaitUri = parsedHeaders.multiplexWaitUri;
+        }
+        if (parsedHeaders.multiplexWsUri) {
+            resource.multiplexWebSocketUri = parsedHeaders.multiplexWsUri;
         }
 
         super.updateResource(resource, headers, result);
     }
 
-    parseHeaders(headers, baseUri) {
+    triggerEvents(resource, result) {
+        if (result != undefined) {
+            resource.resourceHandler.trigger('value', resource.resourceHandler, result);
+        }
+    }
+
+    static parseHeaders(headers, baseUri) {
         var etag = null;
         var valueWaitUri = null;
         var multiplexWaitUri = null;
@@ -145,10 +187,6 @@ class ValueEngineUnit extends EngineUnitBase {
         }
 
         return result;
-    }
-
-    triggerEvents(resourceHandler, result) {
-        resourceHandler.trigger('value', resourceHandler, result);
     }
 }
 

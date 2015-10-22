@@ -1,11 +1,10 @@
-var utils = require('utils');
-
 var ResourceBase = require('EngineUnits/ResourceBase');
 
 class ChangesResource extends ResourceBase {
-    constructor(uri, changesWaitUri) {
-        super(uri);
-        this.changesWaitUri = changesWaitUri;
+    constructor(resourceHandler) {
+        super(resourceHandler);
+        this.started = false;
+        this.changesWaitUri = null;
     }
 }
 

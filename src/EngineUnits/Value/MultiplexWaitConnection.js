@@ -41,13 +41,13 @@ class MultiplexWaitConnection extends ConnectionBase {
             var preferredEndpointItemUris = [];
             var i;
             for (i = 0; i < endpoint.items.length; i++) {
-                preferredEndpointItemUris.push(endpoint.items[i].uri);
+                preferredEndpointItemUris.push(endpoint.items[i].resourceHandler.uri);
             }
             preferredEndpointItemUris.sort();
 
             var pollResourceItemUris = [];
             for (i = 0; i < this.resItems.length; i++) {
-                pollResourceItemUris.push(this.resItems[i].uri);
+                pollResourceItemUris.push(this.resItems[i].resourceHandler.uri);
             }
             pollResourceItemUris.sort();
 
@@ -70,7 +70,7 @@ class MultiplexWaitConnection extends ConnectionBase {
             var urlSegments = [];
             for (var i = 0; i < this.resItems.length; i++) {
                 var res = this.resItems[i];
-                var uri = res.uri;
+                var uri = res.resourceHandler.uri;
                 urlSegments.push(`u=${encodeURIComponent(uri)}&inm=${encodeURIComponent(res.etag)}`);
             }
             var requestUri = `${this.uri}?${urlSegments.join('&')}`;

@@ -82,7 +82,7 @@ class MultiplexWebSocketConnection extends ConnectionBase {
         }
 
         for (var i = 0; i < items.length; i++) {
-            var httpUri = this.mapToHttpUri(items[i].uri);
+            var httpUri = this.mapToHttpUri(items[i].resourceHandler.uri);
             if (httpUri in subscribedItems) {
                 delete subscribedItems[httpUri];
             } else {

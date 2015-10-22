@@ -3,7 +3,7 @@ var debug = require('console');
 var parseLinkHeader = require('utils.parseLinkHeader');
 
 var EngineUnitBase = require('EngineUnits/EngineUnitBase');
-var ChangesAspect = require('EngineUnits/Changes/ChangesAspect');
+var ChangesResource = require('EngineUnits/Changes/ChangesResource');
 var ChangesWaitConnection = require('EngineUnits/Changes/ChangesWaitConnection');
 
 class ChangesEngineUnit extends EngineUnitBase {
@@ -15,8 +15,10 @@ class ChangesEngineUnit extends EngineUnitBase {
 
     update() {
 
+        var resourceAspects = this.engine.getResourceAspectsForInterestType(this.interestType);
+
         var changesWaitItems = new Map();
-        for (let [resUri, res] of this._resources) {
+        for (let res of resourceAspects) {
             if (res.changesWaitUri) {
                 changesWaitItems.set(res.changesWaitUri, res);
             }
@@ -36,8 +38,26 @@ class ChangesEngineUnit extends EngineUnitBase {
 
     }
 
-    createAspect(resourceHandler) {
-        return new ChangesAspect(resourceHandler, this);
+    start(resourceHandler) {
+        var resource = new ChangesResource(resourceHandler);
+
+        var request = new Pollymer.Request();
+        request.on('finished', (code, result, headers) => {
+
+            if (code >= 200 && code < 300) {
+                this.updateResource(resource, headers, result);
+                if (!resource.changesWaitUri) {
+                    debug.info('no changes-wait link');
+                }
+                this.updateEngine();
+                request = null;
+            } else if (code >= 400) {
+                request.retry();
+            }
+        });
+        request.start('HEAD', resourceHandler.uri);
+
+        return resource;
     }
 
     get interestType() {
@@ -50,7 +70,7 @@ class ChangesEngineUnit extends EngineUnitBase {
 
     updateResource(resource, headers, result) {
 
-        var parsedHeaders  = this.parseHeaders(headers, resource.uri);
+        var parsedHeaders = ChangesEngineUnit.parseHeaders(headers, resource.resourceHandler.uri);
         if (parsedHeaders.changesWaitUri) {
             resource.changesWaitUri = parsedHeaders.changesWaitUri;
         }
@@ -58,7 +78,23 @@ class ChangesEngineUnit extends EngineUnitBase {
         super.updateResource(resource, headers, result);
     }
 
-    parseHeaders(headers, baseUri) {
+    triggerEvents(resource, result) {
+
+        if (!resource.started) {
+            resource.started = true;
+            resource.resourceHandler.triggerOnceOnlyEvent('ready', resource.resourceHandler);
+        }
+
+        for (var n = 0; n < result.length; ++n) {
+            if (result[n].deleted) {
+                resource.resourceHandler.trigger('child-deleted', resource.resourceHandler, result[n]);
+            } else {
+                resource.resourceHandler.trigger('child-added', resource.resourceHandler, result[n]);
+            }
+        }
+    }
+
+    static parseHeaders(headers, baseUri) {
         var changesWaitUri = null;
 
         utils.forEachOwnKeyValue(headers, (key, header) => {
@@ -79,16 +115,6 @@ class ChangesEngineUnit extends EngineUnitBase {
         }
 
         return result;
-    }
-
-    triggerEvents(resourceHandler, result) {
-        for (var n = 0; n < result.length; ++n) {
-            if (result[n].deleted) {
-                resourceHandler.trigger('child-deleted', resourceHandler, result[n]);
-            } else {
-                resourceHandler.trigger('child-added', resourceHandler, result[n]);
-            }
-        }
     }
 }
 

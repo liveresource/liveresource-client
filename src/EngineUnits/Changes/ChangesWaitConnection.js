@@ -25,7 +25,7 @@ class ChangesWaitConnection extends ConnectionBase {
     }
 
     hasChanged(endpoint) {
-        return this.res.uri != endpoint.item.uri;
+        return this.res.resourceHandler.uri != endpoint.item.resourceHandler.uri;
     }
 
     abort() {

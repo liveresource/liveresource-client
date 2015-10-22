@@ -6,7 +6,7 @@ class ResourceHandler {
         this._engine = engine;
         this.uri = uri;
 
-        this._aspects = {};
+        this._resourceAspects = {};
         this._liveResources = [];
 
         this._onceOnlyEventMap = new WeakMap();
@@ -55,15 +55,16 @@ class ResourceHandler {
     addEvent(type) {
         var engineUnit = this._engine.findEngineUnitForEvent(type);
         var interestType = engineUnit != null ? engineUnit.interestType : null;
-        if (interestType != null && !(interestType in this._aspects)) {
-            var aspect = engineUnit.createAspect(this);
-            if (aspect != null) {
-                this._aspects[interestType] = aspect;
-                aspect.start();
-            }
+        if (interestType != null && !(interestType in this._resourceAspects)) {
+            this._resourceAspects[interestType] = engineUnit.start(this);
         }
 
         this.checkOnceOnlyEvents();
+    }
+
+    getResourceAspectForInterestType(interestType) {
+        return (interestType != null && interestType in this._resourceAspects) ?
+            this._resourceAspects[interestType] : null;
     }
 }
 
