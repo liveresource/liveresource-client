@@ -6,7 +6,7 @@ var ValueResource = require('EngineUnits/Value/ValueResource');
 var ConnectionBase = require('EngineUnits/ConnectionBase');
 
 class MultiplexWaitConnection extends ConnectionBase {
-    constructor(engineUnit, endpoint, resources) {
+    constructor(engineUnit, endpoint) {
         super(engineUnit);
 
         this.uri = endpoint.endpointUri;
@@ -23,7 +23,7 @@ class MultiplexWaitConnection extends ConnectionBase {
 
                     debug.info(`got data for uri: ${uri}`);
                     var absoluteUri = utils.toAbsoluteUri(this.uri, uri);
-                    engineUnit.updateResources(resources, absoluteUri, item.headers, item.body);
+                    engineUnit.updateResources(absoluteUri, item.headers, item.body);
 
                 }
 

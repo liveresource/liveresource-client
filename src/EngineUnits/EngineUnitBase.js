@@ -14,7 +14,7 @@ class EngineUnitBase {
         this.engine.update();
     }
 
-    addResourceHandler(resourceHandler, createResource) {
+    addResource(resourceHandler, createResource) {
         var resource = this._resources.getOrCreate(resourceHandler.uri, createResource);
         resource.owners.push(resourceHandler);
         this.engine.update();
@@ -33,10 +33,19 @@ class EngineUnitBase {
         return null;
     }
 
-    updateResources(resources, uri, headers, result) {
+    updateResources(uri, headers, result) {
+        for (var [resourceUri, resource] of this._resources) {
+            if (resourceUri == uri) {
+                this.updateResource(resource, headers, result);
+            }
+        }
     }
 
     updateResource(resource, headers, result) {
+        for (var i = 0; i < resource.owners.length; i++) {
+            var owner = resource.owners[i];
+            this.triggerEvents(owner, result);
+        }
     }
 
     _adjustEndpoints(label, currentConnectionsMap, preferredEndpointsMap, createConnectionFunc) {

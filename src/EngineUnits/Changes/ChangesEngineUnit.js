@@ -1,4 +1,5 @@
 var utils = require('utils');
+var debug = require('console');
 var parseLinkHeader = require('utils.parseLinkHeader');
 
 var EngineUnitBase = require('EngineUnits/EngineUnitBase');
@@ -47,42 +48,47 @@ class ChangesEngineUnit extends EngineUnitBase {
         return ['child-added', 'child-removed'];
     }
 
-    updateResources(resources, uri, headers, result) {
-
-        for (var [resourceUri, resource] of resources) {
-            if (resourceUri == uri) {
-                this.updateResource(resource, headers, result);
-            }
-        }
-
-    }
-
     updateResource(resource, headers, result) {
 
-        console.dir (headers)
+        var parsedHeaders  = this.parseHeaders(headers, resource.uri);
+        if (parsedHeaders.changesWaitUri) {
+            resource.changesWaitUri = parsedHeaders.changesWaitUri;
+        }
+
+        super.updateResource(resource, headers, result);
+    }
+
+    parseHeaders(headers, baseUri) {
+        var changesWaitUri = null;
 
         utils.forEachOwnKeyValue(headers, (key, header) => {
-            var lkey = key.toLowerCase();
-            if (lkey == 'link') {
+            var k = key.toLowerCase();
+            if (k == 'link') {
                 var links = parseLinkHeader(header);
                 if (links && links['changes-wait']) {
-                    resource.changesWaitUri = links['changes-wait']['href'];
-                    return false;
+                    changesWaitUri = utils.toAbsoluteUri(baseUri, links['changes-wait']['href']);
                 }
             }
         });
 
-        for (var i = 0; i < resource.owners.length; i++) {
-            var owner = resource.owners[i];
-            for (var n = 0; n < result.length; ++n) {
-                if (result[n].deleted) {
-                    owner.trigger('child-deleted', owner, result[n]);
-                } else {
-                    owner.trigger('child-added', owner, result[n]);
-                }
-            }
+        var result = {};
+
+        if (changesWaitUri) {
+            debug.info('changes-wait: [' + changesWaitUri + ']');
+            result.changesWaitUri = changesWaitUri;
         }
 
+        return result;
+    }
+
+    triggerEvents(resourceHandler, result) {
+        for (var n = 0; n < result.length; ++n) {
+            if (result[n].deleted) {
+                resourceHandler.trigger('child-deleted', resourceHandler, result[n]);
+            } else {
+                resourceHandler.trigger('child-added', resourceHandler, result[n]);
+            }
+        }
     }
 }
 

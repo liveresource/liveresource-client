@@ -1,4 +1,7 @@
 var utils = require('utils');
+var debug = require('console');
+var mapWebSocketUrls = require('utils.mapWebSocketUrls');
+var parseLinkHeader = require('utils.parseLinkHeader');
 
 var EngineUnitBase = require('EngineUnits/EngineUnitBase');
 var ValueAspect = require('EngineUnits/Value/ValueAspect');
@@ -60,13 +63,13 @@ class ValueEngineUnit extends EngineUnitBase {
             'Multiplex Web Socket',
             this._multiplexWebSocketConnections,
             multiplexWebSocketEndpoints,
-            endpoint => new MultiplexWebSocketConnection(this, endpoint, this._resources)
+            endpoint => new MultiplexWebSocketConnection(this, endpoint)
         );
         this._adjustEndpoints(
             'Multiplex Wait',
             this._multipleWaitConnections,
             multiplexWaitEndpoints,
-            endpoint => new MultiplexWaitConnection(this, endpoint, this._resources)
+            endpoint => new MultiplexWaitConnection(this, endpoint)
         );
 
     }
@@ -83,31 +86,69 @@ class ValueEngineUnit extends EngineUnitBase {
         return ['value', 'removed'];
     }
 
-    updateResources(resources, uri, headers, result) {
-
-        for (var [resourceUri, resource] of resources) {
-            if (resourceUri == uri) {
-                this.updateResource(resource, headers, result);
-            }
-        }
-
-    }
-
     updateResource(resource, headers, result) {
 
-        utils.forEachOwnKeyValue(headers, (key, header) => {
-            var lowercaseKey = key.toLocaleLowerCase();
-            if (lowercaseKey == 'etag') {
-                resource.etag = header;
-                return false;
-            }
-        });
-
-        for (var i = 0; i < resource.owners.length; i++) {
-            var owner = resource.owners[i];
-            owner.trigger('value', owner, result);
+        var parsedHeaders = this.parseHeaders(headers, resource.uri);
+        if (parsedHeaders.etag) {
+            resource.etag = parsedHeaders.etag;
         }
 
+        super.updateResource(resource, headers, result);
+    }
+
+    parseHeaders(headers, baseUri) {
+        var etag = null;
+        var valueWaitUri = null;
+        var multiplexWaitUri = null;
+        var multiplexWsUri = null;
+
+        utils.forEachOwnKeyValue(headers, (key, header) => {
+
+            var k = key.toLowerCase();
+            if (k == 'etag') {
+                etag = header;
+            } else if (k == 'link') {
+                var links = parseLinkHeader(header);
+                if (links && links['value-wait']) {
+                    valueWaitUri = utils.toAbsoluteUri(baseUri, links['value-wait']['href']);
+                }
+                if (links && links['multiplex-wait']) {
+                    multiplexWaitUri = utils.toAbsoluteUri(baseUri, links['multiplex-wait']['href']);
+                }
+                if (links && links['multiplex-ws']) {
+                    multiplexWsUri = mapWebSocketUrls.mapHttpUrlToWebSocketUrl(utils.toAbsoluteUri(baseUri, links['multiplex-ws']['href']));
+                }
+            }
+
+        });
+
+        var result = {};
+
+        if (etag) {
+            debug.info('etag: [' + etag + ']');
+            result.etag = etag;
+        }
+
+        if (valueWaitUri) {
+            debug.info('value-wait: [' + valueWaitUri + ']');
+            result.valueWaitUri = valueWaitUri;
+        }
+
+        if (multiplexWaitUri) {
+            debug.info('multiplex-wait: [' + multiplexWaitUri + ']');
+            result.multiplexWaitUri = multiplexWaitUri;
+        }
+
+        if (multiplexWsUri) {
+            debug.info('multiplex-ws: [' + multiplexWsUri + ']');
+            result.multiplexWsUri = multiplexWsUri;
+        }
+
+        return result;
+    }
+
+    triggerEvents(resourceHandler, result) {
+        resourceHandler.trigger('value', resourceHandler, result);
     }
 }
 

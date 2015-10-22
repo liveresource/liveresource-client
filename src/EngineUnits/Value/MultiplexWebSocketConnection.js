@@ -7,7 +7,7 @@ var ConnectionBase = require('EngineUnits/ConnectionBase');
 var ValueResource = require('EngineUnits/Value/ValueResource');
 
 class MultiplexWebSocketConnection extends ConnectionBase {
-    constructor(engineUnit, endpoint, resources) {
+    constructor(engineUnit, endpoint) {
         super(engineUnit);
 
         var endpointUri = endpoint.endpointUri;
@@ -27,7 +27,7 @@ class MultiplexWebSocketConnection extends ConnectionBase {
                 var absoluteUri = utils.toAbsoluteUri(endpointUri, uri);
                 var httpUri = mapWebSocketUrls.mapWebSocketUrlToHttpUrl(absoluteUri);
 
-                engineUnit.updateResources(resources, httpUri, data.headers, data.body);
+                engineUnit.updateResources(httpUri, data.headers, data.body);
 
             });
             this.subscribedItems = {};
