@@ -5,8 +5,8 @@ var Pollymer = require('Pollymer');
 var ConnectionBase = require('EngineUnits/ConnectionBase');
 
 class ChangesWaitConnection extends ConnectionBase {
-    constructor(engine, endpoint) {
-        super(engine);
+    constructor(engineUnit, endpoint) {
+        super(engineUnit);
 
         this.uri = endpoint.endpointUri;
         this.request = new Pollymer.Request();
@@ -17,10 +17,10 @@ class ChangesWaitConnection extends ConnectionBase {
             this.isActive = false;
 
             if (code >= 200 && code < 300) {
-                this.res.updateItem(headers, result);
+                engineUnit.updateResource(this.res, headers, result);
             }
 
-            this._engine.update();
+            this._engineUnit.updateEngine();
         });
     }
 

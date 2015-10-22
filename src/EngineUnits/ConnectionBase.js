@@ -1,6 +1,6 @@
 class ConnectionBase {
-    constructor(engine) {
-        this._engine = engine;
+    constructor(engineUnit) {
+        this._engineUnit = engineUnit;
     }
 
     hasChanged(endpoint) {

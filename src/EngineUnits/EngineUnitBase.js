@@ -10,6 +10,10 @@ class EngineUnitBase {
     update() {
     }
 
+    updateEngine() {
+        this.engine.update();
+    }
+
     addResourceHandler(resourceHandler, createResource) {
         var resource = this._resources.getOrCreate(resourceHandler.uri, createResource);
         resource.owners.push(resourceHandler);
@@ -27,6 +31,12 @@ class EngineUnitBase {
 
     get events() {
         return null;
+    }
+
+    updateResources(resources, uri, headers, result) {
+    }
+
+    updateResource(resource, headers, result) {
     }
 
     _adjustEndpoints(label, currentConnectionsMap, preferredEndpointsMap, createConnectionFunc) {
@@ -75,7 +85,7 @@ class EngineUnitBase {
         // Create new requests for endpoints that need them.
         for (let [endpointUri, endpoint] of newEndpoints) {
             debug.info(`Adding '${label}' endpoint - '${endpointUri}'.`);
-            currentConnectionsMap.set(endpointUri, createConnectionFunc(this, endpoint));
+            currentConnectionsMap.set(endpointUri, createConnectionFunc(endpoint));
         }
 
         // For any current endpoint, make sure they are running.

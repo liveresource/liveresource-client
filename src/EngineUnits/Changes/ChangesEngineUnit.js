@@ -1,4 +1,5 @@
 var utils = require('utils');
+var parseLinkHeader = require('utils.parseLinkHeader');
 
 var EngineUnitBase = require('EngineUnits/EngineUnitBase');
 var ChangesAspect = require('EngineUnits/Changes/ChangesAspect');
@@ -29,7 +30,7 @@ class ChangesEngineUnit extends EngineUnitBase {
             'Changes Wait',
             this._changesWaitConnections,
             changesWaitEndpoints,
-            (engine, endpoint) => new ChangesWaitConnection(engine, endpoint)
+            endpoint => new ChangesWaitConnection(this, endpoint)
         );
 
     }
@@ -44,6 +45,44 @@ class ChangesEngineUnit extends EngineUnitBase {
 
     get events() {
         return ['child-added', 'child-removed'];
+    }
+
+    updateResources(resources, uri, headers, result) {
+
+        for (var [resourceUri, resource] of resources) {
+            if (resourceUri == uri) {
+                this.updateResource(resource, headers, result);
+            }
+        }
+
+    }
+
+    updateResource(resource, headers, result) {
+
+        console.dir (headers)
+
+        utils.forEachOwnKeyValue(headers, (key, header) => {
+            var lkey = key.toLowerCase();
+            if (lkey == 'link') {
+                var links = parseLinkHeader(header);
+                if (links && links['changes-wait']) {
+                    resource.changesWaitUri = links['changes-wait']['href'];
+                    return false;
+                }
+            }
+        });
+
+        for (var i = 0; i < resource.owners.length; i++) {
+            var owner = resource.owners[i];
+            for (var n = 0; n < result.length; ++n) {
+                if (result[n].deleted) {
+                    owner.trigger('child-deleted', owner, result[n]);
+                } else {
+                    owner.trigger('child-added', owner, result[n]);
+                }
+            }
+        }
+
     }
 }
 

@@ -6,8 +6,8 @@ var ValueResource = require('EngineUnits/Value/ValueResource');
 var ConnectionBase = require('EngineUnits/ConnectionBase');
 
 class MultiplexWaitConnection extends ConnectionBase {
-    constructor(engine, endpoint, resources) {
-        super(engine);
+    constructor(engineUnit, endpoint, resources) {
+        super(engineUnit);
 
         this.uri = endpoint.endpointUri;
         this.request = new Pollymer.Request();
@@ -23,13 +23,13 @@ class MultiplexWaitConnection extends ConnectionBase {
 
                     debug.info(`got data for uri: ${uri}`);
                     var absoluteUri = utils.toAbsoluteUri(this.uri, uri);
-                    ValueResource.updateValueItemMultiplex(resources, absoluteUri, item.headers, item.body);
+                    engineUnit.updateResources(resources, absoluteUri, item.headers, item.body);
 
                 }
 
             }
 
-            this._engine.update();
+            this._engineUnit.updateEngine();
         });
     }
 

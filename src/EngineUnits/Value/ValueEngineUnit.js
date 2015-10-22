@@ -54,19 +54,19 @@ class ValueEngineUnit extends EngineUnitBase {
             'Value Wait',
             this._valueWaitConnections,
             valueWaitEndpoints,
-            (engine, endpoint) => new ValueWaitConnection(engine, endpoint)
+            endpoint => new ValueWaitConnection(this, endpoint)
         );
         this._adjustEndpoints(
             'Multiplex Web Socket',
             this._multiplexWebSocketConnections,
             multiplexWebSocketEndpoints,
-            (engine, endpoint) => new MultiplexWebSocketConnection(engine, endpoint, this._resources)
+            endpoint => new MultiplexWebSocketConnection(this, endpoint, this._resources)
         );
         this._adjustEndpoints(
             'Multiplex Wait',
             this._multipleWaitConnections,
             multiplexWaitEndpoints,
-            (engine, endpoint) => new MultiplexWaitConnection(engine, endpoint, this._resources)
+            endpoint => new MultiplexWaitConnection(this, endpoint, this._resources)
         );
 
     }
@@ -81,6 +81,33 @@ class ValueEngineUnit extends EngineUnitBase {
 
     get events() {
         return ['value', 'removed'];
+    }
+
+    updateResources(resources, uri, headers, result) {
+
+        for (var [resourceUri, resource] of resources) {
+            if (resourceUri == uri) {
+                this.updateResource(resource, headers, result);
+            }
+        }
+
+    }
+
+    updateResource(resource, headers, result) {
+
+        utils.forEachOwnKeyValue(headers, (key, header) => {
+            var lowercaseKey = key.toLocaleLowerCase();
+            if (lowercaseKey == 'etag') {
+                resource.etag = header;
+                return false;
+            }
+        });
+
+        for (var i = 0; i < resource.owners.length; i++) {
+            var owner = resource.owners[i];
+            owner.trigger('value', owner, result);
+        }
+
     }
 }
 
