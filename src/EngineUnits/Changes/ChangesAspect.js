@@ -17,13 +17,9 @@ class ChangesAspect extends AspectBase {
         request.on('finished', (code, result, headers) => {
 
             if (code >= 200 && code < 400) {
+                // The initial request is HEAD only, so it contains only headers.
+                // So we do nothing with result
                 var headerValues = this._engineUnit.parseHeaders(headers, this._resourceHandler.uri);
-
-                // 304 if not changed, don't trigger value
-                if (code < 300) {
-                    this._engineUnit.triggerEvents(this._resourceHandler, result);
-                }
-
                 if (headerValues.changesWaitUri) {
                     this._engineUnit.addResource(this._resourceHandler, () => new ChangesResource(
                         this._resourceHandler.uri,
