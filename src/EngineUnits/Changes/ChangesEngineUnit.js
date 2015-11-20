@@ -72,7 +72,21 @@ class ChangesEngineUnit extends EngineUnitBase {
 
         var parsedHeaders = ChangesEngineUnit.parseHeaders(headers, resource.resourceHandler.uri);
         if (parsedHeaders.changesWaitUri) {
+            // -- HACK: Try to reuse Pollymer requests for this, for now.
+            var connection = this._changesWaitConnections.get(resource.changesWaitUri);
+            if (connection) {
+                this._changesWaitConnections.delete(resource.changesWaitUri);
+            }
+            // -- END HACK
+
             resource.changesWaitUri = parsedHeaders.changesWaitUri;
+
+            // -- HACK
+            if (connection) {
+                this._changesWaitConnections.set(resource.changesWaitUri, connection);
+                connection.uri = resource.changesWaitUri;
+            }
+            // -- END HACK
         }
 
         super.updateResource(resource, headers, result);
