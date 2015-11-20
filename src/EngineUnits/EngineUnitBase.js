@@ -1,5 +1,6 @@
 var utils = require('utils');
 var debug = require('console');
+var Pollymer = require('Pollymer');
 
 class EngineUnitBase {
     constructor() {
@@ -41,6 +42,25 @@ class EngineUnitBase {
     }
 
     static parseHeaders(headers, baseUri) {
+    }
+
+    createLongPoll() {
+        var request = new Pollymer.Request();
+        this.setLongPollOptions(request);
+        return request;
+    }
+
+    setLongPollOptions(request) {
+        if (this.engine.options.longPollTimeoutMsecs) {
+            request.timeout = this.engine.options.longPollTimeoutMsecs;
+        } else {
+            request.timeout = 60000;
+        }
+        if (this.engine.options.maxLongPollDelayMsecs) {
+            request.maxDelay = this.engine.options.maxLongPollDelayMsecs;
+        } else {
+            request.maxDelay = 1000;
+        }
     }
 
     _adjustEndpoints(label, currentConnectionsMap, preferredEndpointsMap, createConnectionFunc) {

@@ -1,6 +1,5 @@
 var utils = require('utils');
 var debug = require('console');
-var Pollymer = require('Pollymer');
 
 var ConnectionBase = require('EngineUnits/ConnectionBase');
 
@@ -9,7 +8,7 @@ class ChangesWaitConnection extends ConnectionBase {
         super(engineUnit);
 
         this.uri = endpoint.endpointUri;
-        this.request = new Pollymer.Request();
+        this.request = engineUnit.createLongPoll();
         this.res = endpoint.item;
         this.isActive = false;
 
@@ -36,6 +35,7 @@ class ChangesWaitConnection extends ConnectionBase {
         if (!this.isActive) {
             var requestUri = this.uri;
             debug.info(`Changes Wait Request URI: ${requestUri}`);
+            this._engineUnit.setLongPollOptions(this.request);
             this.request.start('GET', requestUri, {
                 'Wait': 55
             });

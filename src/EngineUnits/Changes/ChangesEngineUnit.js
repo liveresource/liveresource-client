@@ -41,7 +41,7 @@ class ChangesEngineUnit extends EngineUnitBase {
     start(resourceHandler) {
         var resource = new ChangesResource(resourceHandler);
 
-        var request = new Pollymer.Request();
+        var request = this.createLongPoll();
         request.on('finished', (code, result, headers) => {
 
             if (code >= 200 && code < 300) {

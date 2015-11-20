@@ -79,7 +79,7 @@ class ValueEngineUnit extends EngineUnitBase {
     start(resourceHandler) {
         var resource = new ValueResource(resourceHandler);
 
-        var request = new Pollymer.Request();
+        var request = this.createLongPoll();
         request.on('finished', (code, result, headers) => {
 
             if (code >= 200 && code < 400) {

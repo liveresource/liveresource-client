@@ -1,6 +1,5 @@
 var utils = require('utils');
 var debug = require('console');
-var Pollymer = require('Pollymer');
 
 var ValueResource = require('EngineUnits/Value/ValueResource');
 var ConnectionBase = require('EngineUnits/ConnectionBase');
@@ -10,7 +9,7 @@ class MultiplexWaitConnection extends ConnectionBase {
         super(engineUnit);
 
         this.uri = endpoint.endpointUri;
-        this.request = new Pollymer.Request();
+        this.request = engineUnit.createLongPoll();
         this.resItems = endpoint.items.slice();
         this.isActive = false;
 
@@ -76,6 +75,7 @@ class MultiplexWaitConnection extends ConnectionBase {
             var requestUri = `${this.uri}?${urlSegments.join('&')}`;
 
             debug.info(`Multiplex Wait Request URI: ${requestUri}`);
+            this._engineUnit.setLongPollOptions(this.request);
             this.request.start('GET', requestUri, {
                 'Wait': 55
             });

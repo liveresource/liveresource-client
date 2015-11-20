@@ -9,6 +9,15 @@ class Engine {
         this._resourceHandlers = new Map();
         this._engineUnits = [];
         this._updatePending = false;
+
+        this.options = {
+            longPollTimeoutMsecs: 0,
+            maxLongPollDelayMsecs: 0
+        };
+    }
+
+    setGlobalOptions(options) {
+        this.options = options;
     }
 
     getHandlerForUri(uri) {

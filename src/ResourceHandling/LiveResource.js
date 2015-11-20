@@ -4,8 +4,12 @@ var getWindowLocationHref = require('utils.getWindowLocationHref');
 var Events = require('ResourceHandling/Events');
 
 class LiveResource {
-    constructor(engine, uri) {
+    constructor(staticClass, engine, uri) {
         this._events = new Events();
+
+        // staticClass is a reference to the "class" used in global scope, e.g., Liveresource.options
+        // This is a hacky way of setting options on the engine, may want to revisit
+        engine.setGlobalOptions(staticClass.options);
 
         var windowLocationHref = getWindowLocationHref();
         var absoluteUri = utils.toAbsoluteUri(windowLocationHref, uri);
@@ -31,11 +35,16 @@ class LiveResource {
     }
 
     static createLiveResourceConstructorWithEngine(engine) {
-        return class {
+        var LiveResourceClass = class {
             constructor(uri) {
-                return new LiveResource(engine, uri);
+                return new LiveResource(this.constructor, engine, uri);
             }
         };
+        LiveResourceClass.options = {
+            longPollTimeoutMsecs: 0,
+            maxLongPollDelayMsecs: 0
+        };
+        return LiveResourceClass;
     }
 }
 
