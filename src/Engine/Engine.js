@@ -1,8 +1,7 @@
-var utils = require('utils');
-var debug = require('console');
-var mapWebSocketUrls = require('utils.mapWebSocketUrls');
+import { getOrCreateEntry } from 'utils';
+import mapWebSocketUrls from 'utils.mapWebSocketUrls';
 
-var ResourceHandler = require('ResourceHandling/ResourceHandler');
+import ResourceHandler from 'ResourceHandling/ResourceHandler';
 
 class Engine {
     constructor() {
@@ -21,7 +20,7 @@ class Engine {
     }
 
     getHandlerForUri(uri) {
-        return this._resourceHandlers.getOrCreate(uri, () => new ResourceHandler(this, uri));
+        return getOrCreateEntry(this._resourceHandlers, uri, () => new ResourceHandler(this, uri));
     }
 
     getResourceAspectsForInterestType(interestType) {
@@ -46,7 +45,7 @@ class Engine {
             this._updatePending = false;
 
             // restart our long poll
-            debug.info('engine: setup long polls');
+            console.info('engine: setup long polls');
 
             for(var i = 0; i < this._engineUnits.length; i++) {
                 var engineUnit = this._engineUnits[i];
@@ -63,7 +62,7 @@ class Engine {
     findEngineUnitForEvent(eventName) {
         for (var i = 0; i < this._engineUnits.length; i++) {
             var engineUnit = this._engineUnits[i];
-            if (utils.findInArray(engineUnit.events, eventName) >= 0) {
+            if (engineUnit.events.indexOf(eventName) >= 0) {
                 return engineUnit;
             }
         }
@@ -71,4 +70,4 @@ class Engine {
     }
 }
 
-module.exports = Engine;
+export default Engine;

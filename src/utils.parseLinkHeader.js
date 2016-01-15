@@ -1,14 +1,13 @@
-var debug = require('console');
-
 // TODO: REFACTOR THIS
 // ** PARSE LINK HEADER **
 // returns object with structure:
 //   { reltype1: { href: url, otherparam1: val }, reltype2: { ... } }
 // or return null if parse fails
 
-module.exports = function (header) {
-    if (header.length == 0)
+export default (header) => {
+    if (header.length == 0) {
         return null;
+    }
 
     var links = {};
 
@@ -120,7 +119,7 @@ module.exports = function (header) {
         if (rel) {
             var rels = rel.split(' ');
             for (var i = 0; i < rels.length; ++i) {
-                debug.info('link: url=[' + url + '], rel=[' + rels[i] + ']');
+                console.info('link: url=[' + url + '], rel=[' + rels[i] + ']');
                 var link = {};
                 link.rel = rels[i];
                 link.href = url;

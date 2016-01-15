@@ -1,13 +1,12 @@
-var utils = require('utils');
-var debug = require('console');
-var mapWebSocketUrls = require('utils.mapWebSocketUrls');
-var parseLinkHeader = require('utils.parseLinkHeader');
+import { getOrCreateEntry, toAbsoluteUri } from 'utils';
+import { mapHttpUrlToWebSocketUrl } from 'utils.mapWebSocketUrls';
+import { parseLinkHeader } from 'utils.parseLinkHeader';
 
-var EngineUnitBase = require('EngineUnits/EngineUnitBase');
-var ValueResource = require('EngineUnits/Value/ValueResource');
-var ValueWaitConnection = require('EngineUnits/Value/ValueWaitConnection');
-var MultiplexWebSocketConnection = require('EngineUnits/Value/MultiplexWebSocketConnection');
-var MultiplexWaitConnection = require('EngineUnits/Value/MultiplexWaitConnection');
+import EngineUnitBase from 'EngineUnits/EngineUnitBase';
+import ValueResource from 'EngineUnits/Value/ValueResource';
+import ValueWaitConnection from 'EngineUnits/Value/ValueWaitConnection';
+import MultiplexWebSocketConnection from 'EngineUnits/Value/MultiplexWebSocketConnection';
+import MultiplexWaitConnection from 'EngineUnits/Value/MultiplexWaitConnection';
 
 class ValueEngineUnit extends EngineUnitBase {
     constructor() {
@@ -20,27 +19,27 @@ class ValueEngineUnit extends EngineUnitBase {
 
     update() {
 
-        var resourceAspects = this.engine.getResourceAspectsForInterestType(this.interestType);
+        const resourceAspects = this.engine.getResourceAspectsForInterestType(this.interestType);
 
-        var valueWaitItems = new Map();
-        var multiplexWebSocketItems = new Map();
-        var multiplexWaitItems = new Map();
+        const valueWaitItems = new Map();
+        const multiplexWebSocketItems = new Map();
+        const multiplexWaitItems = new Map();
 
         for (let res of resourceAspects) {
             if (MultiplexWebSocketConnection.isWebSockHopAvailable && res.multiplexWebSocketUri) {
-                var multiplexWebSocketPoll = multiplexWebSocketItems.getOrCreate(res.multiplexWebSocketUri, () => ({items: []}));
+                var multiplexWebSocketPoll = getOrCreateEntry(multiplexWebSocketItems, res.multiplexWebSocketUri, () => ({items: []}));
                 multiplexWebSocketPoll.items.push(res);
             } else if (res.multiplexWaitUri) {
-                var multiplexWaitPoll = multiplexWaitItems.getOrCreate(res.multiplexWaitUri, () => ({items: []}));
+                var multiplexWaitPoll = getOrCreateEntry(multiplexWaitItems, res.multiplexWaitUri, () => ({items: []}));
                 multiplexWaitPoll.items.push(res);
             } else {
                 valueWaitItems.set(res.valueWaitUri, res);
             }
         }
 
-        var valueWaitEndpoints = new Map();
-        var multiplexWebSocketEndpoints = new Map();
-        var multiplexWaitEndpoints = new Map();
+        const valueWaitEndpoints = new Map();
+        const multiplexWebSocketEndpoints = new Map();
+        const multiplexWaitEndpoints = new Map();
         for (let [endpointUri, endpoint] of multiplexWebSocketItems) {
             multiplexWebSocketEndpoints.set(endpointUri, { endpointUri, items: endpoint.items });
         }
@@ -77,9 +76,9 @@ class ValueEngineUnit extends EngineUnitBase {
     }
 
     start(resourceHandler) {
-        var resource = new ValueResource(resourceHandler);
+        const resource = new ValueResource(resourceHandler);
 
-        var request = this.createLongPoll();
+        let request = this.createLongPoll();
         request.on('finished', (code, result, headers) => {
 
             if (code >= 200 && code < 400) {
@@ -87,7 +86,7 @@ class ValueEngineUnit extends EngineUnitBase {
                 this.updateResource(resource, headers, code < 300 ? result : null);
 
                 if (!resource.etag) {
-                    debug.info('no etag');
+                    console.info('no etag');
                 }
                 this.updateEngine();
                 request = null;
@@ -115,7 +114,7 @@ class ValueEngineUnit extends EngineUnitBase {
 
     updateResource(resource, headers, result) {
 
-        var parsedHeaders = ValueEngineUnit.parseHeaders(headers, resource.resourceHandler.uri);
+        const parsedHeaders = ValueEngineUnit.parseHeaders(headers, resource.resourceHandler.uri);
         if (parsedHeaders.etag) {
             resource.etag = parsedHeaders.etag;
         }
@@ -139,12 +138,13 @@ class ValueEngineUnit extends EngineUnitBase {
     }
 
     static parseHeaders(headers, baseUri) {
-        var etag = null;
-        var valueWaitUri = null;
-        var multiplexWaitUri = null;
-        var multiplexWsUri = null;
+        let etag = null;
+        let valueWaitUri = null;
+        let multiplexWaitUri = null;
+        let multiplexWsUri = null;
 
-        utils.forEachOwnKeyValue(headers, (key, header) => {
+        Object.keys(headers).forEach(key => {
+            const header = headers[key];
 
             var k = key.toLowerCase();
             if (k == 'etag') {
@@ -152,37 +152,36 @@ class ValueEngineUnit extends EngineUnitBase {
             } else if (k == 'link') {
                 var links = parseLinkHeader(header);
                 if (links && links['value-wait']) {
-                    valueWaitUri = utils.toAbsoluteUri(baseUri, links['value-wait']['href']);
+                    valueWaitUri = toAbsoluteUri(baseUri, links['value-wait']['href']);
                 }
                 if (links && links['multiplex-wait']) {
-                    multiplexWaitUri = utils.toAbsoluteUri(baseUri, links['multiplex-wait']['href']);
+                    multiplexWaitUri = toAbsoluteUri(baseUri, links['multiplex-wait']['href']);
                 }
                 if (links && links['multiplex-ws']) {
-                    multiplexWsUri = mapWebSocketUrls.mapHttpUrlToWebSocketUrl(utils.toAbsoluteUri(baseUri, links['multiplex-ws']['href']));
+                    multiplexWsUri = mapHttpUrlToWebSocketUrl(toAbsoluteUri(baseUri, links['multiplex-ws']['href']));
                 }
             }
-
         });
 
-        var result = {};
+        const result = {};
 
         if (etag) {
-            debug.info('etag: [' + etag + ']');
+            console.info('etag: [' + etag + ']');
             result.etag = etag;
         }
 
         if (valueWaitUri) {
-            debug.info('value-wait: [' + valueWaitUri + ']');
+            console.info('value-wait: [' + valueWaitUri + ']');
             result.valueWaitUri = valueWaitUri;
         }
 
         if (multiplexWaitUri) {
-            debug.info('multiplex-wait: [' + multiplexWaitUri + ']');
+            console.info('multiplex-wait: [' + multiplexWaitUri + ']');
             result.multiplexWaitUri = multiplexWaitUri;
         }
 
         if (multiplexWsUri) {
-            debug.info('multiplex-ws: [' + multiplexWsUri + ']');
+            console.info('multiplex-ws: [' + multiplexWsUri + ']');
             result.multiplexWsUri = multiplexWsUri;
         }
 
@@ -190,4 +189,4 @@ class ValueEngineUnit extends EngineUnitBase {
     }
 }
 
-module.exports = ValueEngineUnit;
+export default ValueEngineUnit;

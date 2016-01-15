@@ -1,7 +1,4 @@
-var utils = require('utils');
-var debug = require('console');
-
-var ConnectionBase = require('EngineUnits/ConnectionBase');
+import ConnectionBase from 'EngineUnits/ConnectionBase';
 
 class ValueWaitConnection extends ConnectionBase {
     constructor(engineUnit, endpoint) {
@@ -33,8 +30,8 @@ class ValueWaitConnection extends ConnectionBase {
 
     refresh(endpoint) {
         if (!this.isActive) {
-            var requestUri = this.uri;
-            debug.info(`Value Wait Request URI: ${requestUri}`);
+            const requestUri = this.uri;
+            console.info(`Value Wait Request URI: ${requestUri}`);
             this._engineUnit.setLongPollOptions(this.request);
             this.request.start('GET', requestUri, {
                 'If-None-Match': this.res.etag,
@@ -45,4 +42,4 @@ class ValueWaitConnection extends ConnectionBase {
     }
 }
 
-module.exports = ValueWaitConnection;
+export default ValueWaitConnection;

@@ -1,7 +1,7 @@
-var utils = require('utils');
-var getWindowLocationHref = require('utils.getWindowLocationHref');
+import { toAbsoluteUri } from 'utils';
+import getWindowLocationHref from 'utils.getWindowLocationHref';
 
-var Events = require('ResourceHandling/Events');
+import Events from 'ResourceHandling/Events';
 
 class LiveResource {
     constructor(staticClass, engine, uri) {
@@ -11,19 +11,19 @@ class LiveResource {
         // This is a hacky way of setting options on the engine, may want to revisit
         engine.setGlobalOptions(staticClass.options);
 
-        var windowLocationHref = getWindowLocationHref();
-        var absoluteUri = utils.toAbsoluteUri(windowLocationHref, uri);
+        const windowLocationHref = getWindowLocationHref();
+        const absoluteUri = toAbsoluteUri(windowLocationHref, uri);
         this._resourceHandler = engine.getHandlerForUri(absoluteUri);
         this._resourceHandler.addLiveResource(this);
     }
 
     on(type, handler) {
-        this._events.on(type, handler);
+        const event = this._events.on(type, handler);
         this._resourceHandler.addEvent(type);
-    }
-
-    off(type, handler = null) {
-        this._events.off(type, handler);
+        return () => {
+            event();
+            // Also remove from resource handler
+        }
     }
 
     cancel() {
@@ -35,7 +35,7 @@ class LiveResource {
     }
 
     static createLiveResourceConstructorWithEngine(engine) {
-        var LiveResourceClass = class {
+        const LiveResourceClass = class {
             constructor(uri) {
                 return new LiveResource(this.constructor, engine, uri);
             }
@@ -48,4 +48,4 @@ class LiveResource {
     }
 }
 
-module.exports = LiveResource;
+export default LiveResource;

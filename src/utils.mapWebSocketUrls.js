@@ -1,36 +1,35 @@
-var utils = require('utils');
-var getWindowLocationHref = require('utils.getWindowLocationHref');
+import { toAbsoluteUri, beginsWith, replaceStart } from 'utils';
+import getWindowLocationHref from 'utils.getWindowLocationHref';
 
-module.exports = {
-    mapHttpUrlToWebSocketUrl: function(uri) {
-        var windowLocationHref = getWindowLocationHref();
-        var absoluteUri = utils.toAbsoluteUri(windowLocationHref, uri);
+export const mapHttpUrlToWebSocketUrl = (url) => {
+    const windowLocationHref = getWindowLocationHref();
+    const absoluteUri = toAbsoluteUri(windowLocationHref, url);
 
-        var converted = absoluteUri;
-        if (utils.beginsWith(absoluteUri, "http://")) {
-            converted = utils.replaceStart(absoluteUri, "http://", "ws://");
-        } else if (utils.beginsWith(absoluteUri, "https://")) {
-            converted = utils.replaceStart(absoluteUri, "https://", "wss://");
-        }
-
-        if (!utils.beginsWith(converted, "ws://") && !utils.beginsWith(converted, "wss://")) {
-            throw "not valid";
-        }
-
-        return converted;
-    },
-    mapWebSocketUrlToHttpUrl: function(url) {
-        var converted = url;
-        if (utils.beginsWith(url, "ws://")) {
-            converted = utils.replaceStart(url, "ws://", "http://");
-        } else if (utils.beginsWith(url, "wss://")) {
-            converted = utils.replaceStart(url, "wss://", "https://");
-        }
-
-        if (!utils.beginsWith(converted, "http://") && !utils.beginsWith(converted, "https://")) {
-            throw "not valid";
-        }
-
-        return converted;
+    let converted = absoluteUri;
+    if (beginsWith(absoluteUri, "http://")) {
+        converted = replaceStart(absoluteUri, "http://", "ws://");
+    } else if (beginsWith(absoluteUri, "https://")) {
+        converted = replaceStart(absoluteUri, "https://", "wss://");
     }
+
+    if (!beginsWith(converted, "ws://") && !beginsWith(converted, "wss://")) {
+        throw "not valid";
+    }
+
+    return converted;
+};
+
+export const mapWebSocketUrlToHttpUrl = (url) => {
+    let converted = url;
+    if (beginsWith(url, "ws://")) {
+        converted = replaceStart(url, "ws://", "http://");
+    } else if (beginsWith(url, "wss://")) {
+        converted = replaceStart(url, "wss://", "https://");
+    }
+
+    if (!beginsWith(converted, "http://") && !beginsWith(converted, "https://")) {
+        throw "not valid";
+    }
+
+    return converted;
 };

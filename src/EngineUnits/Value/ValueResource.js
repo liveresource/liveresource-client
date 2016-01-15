@@ -1,4 +1,4 @@
-var ResourceBase = require('EngineUnits/ResourceBase');
+import ResourceBase from 'EngineUnits/ResourceBase';
 
 class ValueResource extends ResourceBase {
     constructor(resourceHandler) {
@@ -11,4 +11,4 @@ class ValueResource extends ResourceBase {
     }
 }
 
-module.exports = ValueResource;
+export default ValueResource;

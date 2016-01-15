@@ -14,4 +14,4 @@ class ConnectionBase {
     }
 }
 
-module.exports = ConnectionBase;
+export default ConnectionBase;

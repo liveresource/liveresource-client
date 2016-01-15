@@ -1,8 +1,7 @@
 var utils = require('utils');
-var debug = require('console');
 
-var ValueResource = require('EngineUnits/Value/ValueResource');
-var ConnectionBase = require('EngineUnits/ConnectionBase');
+import ValueResource from 'EngineUnits/Value/ValueResource';
+import ConnectionBase from 'EngineUnits/ConnectionBase';
 
 class MultiplexWaitConnection extends ConnectionBase {
     constructor(engineUnit, endpoint) {
@@ -18,13 +17,12 @@ class MultiplexWaitConnection extends ConnectionBase {
 
             if (code >= 200 && code < 300) {
 
-                for (let [uri, item] of utils.objectEntries(result)) {
-
-                    debug.info(`got data for uri: ${uri}`);
+                Object.keys(result).forEach(uri => {
+                    const item = result[uri];
+                    console.info(`got data for uri: ${uri}`);
                     var absoluteUri = utils.toAbsoluteUri(this.uri, uri);
                     engineUnit.updateResources(absoluteUri, item.headers, item.body);
-
-                }
+                });
 
             }
 
@@ -33,18 +31,18 @@ class MultiplexWaitConnection extends ConnectionBase {
     }
 
     hasChanged(endpoint) {
-        var removedOrChanged = false;
+        let removedOrChanged = false;
         if (endpoint.items.length != this.resItems.length) {
             removedOrChanged = true
         } else {
-            var preferredEndpointItemUris = [];
+            const preferredEndpointItemUris = [];
             var i;
             for (i = 0; i < endpoint.items.length; i++) {
                 preferredEndpointItemUris.push(endpoint.items[i].resourceHandler.uri);
             }
             preferredEndpointItemUris.sort();
 
-            var pollResourceItemUris = [];
+            const pollResourceItemUris = [];
             for (i = 0; i < this.resItems.length; i++) {
                 pollResourceItemUris.push(this.resItems[i].resourceHandler.uri);
             }
@@ -66,15 +64,15 @@ class MultiplexWaitConnection extends ConnectionBase {
 
     refresh(endpoint) {
         if (!this.isActive) {
-            var urlSegments = [];
+            const urlSegments = [];
             for (var i = 0; i < this.resItems.length; i++) {
                 var res = this.resItems[i];
                 var uri = res.resourceHandler.uri;
                 urlSegments.push(`u=${encodeURIComponent(uri)}&inm=${encodeURIComponent(res.etag)}`);
             }
-            var requestUri = `${this.uri}?${urlSegments.join('&')}`;
 
-            debug.info(`Multiplex Wait Request URI: ${requestUri}`);
+            const requestUri = `${this.uri}?${urlSegments.join('&')}`;
+            console.info(`Multiplex Wait Request URI: ${requestUri}`);
             this._engineUnit.setLongPollOptions(this.request);
             this.request.start('GET', requestUri, {
                 'Wait': 55
@@ -84,4 +82,4 @@ class MultiplexWaitConnection extends ConnectionBase {
     }
 }
 
-module.exports = MultiplexWaitConnection;
+export default MultiplexWaitConnection;

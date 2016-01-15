@@ -1,10 +1,9 @@
-var utils = require('utils');
-var debug = require('console');
-var parseLinkHeader = require('utils.parseLinkHeader');
+import { toAbsoluteUri } from 'utils';
+import parseLinkHeader from 'utils.parseLinkHeader';
 
-var EngineUnitBase = require('EngineUnits/EngineUnitBase');
-var ChangesResource = require('EngineUnits/Changes/ChangesResource');
-var ChangesWaitConnection = require('EngineUnits/Changes/ChangesWaitConnection');
+import EngineUnitBase from 'EngineUnits/EngineUnitBase';
+import ChangesResource from 'EngineUnits/Changes/ChangesResource';
+import ChangesWaitConnection from 'EngineUnits/Changes/ChangesWaitConnection';
 
 class ChangesEngineUnit extends EngineUnitBase {
     constructor() {
@@ -47,7 +46,7 @@ class ChangesEngineUnit extends EngineUnitBase {
             if (code >= 200 && code < 300) {
                 this.updateResource(resource, headers, result);
                 if (!resource.changesWaitUri) {
-                    debug.info('no changes-wait link');
+                    console.info('no changes-wait link');
                 }
                 this.updateEngine();
                 request = null;
@@ -111,12 +110,13 @@ class ChangesEngineUnit extends EngineUnitBase {
     static parseHeaders(headers, baseUri) {
         var changesWaitUri = null;
 
-        utils.forEachOwnKeyValue(headers, (key, header) => {
+        Object.keys(headers).forEach(key => {
+            const header = headers[key];
             var k = key.toLowerCase();
             if (k == 'link') {
                 var links = parseLinkHeader(header);
                 if (links && links['changes-wait']) {
-                    changesWaitUri = utils.toAbsoluteUri(baseUri, links['changes-wait']['href']);
+                    changesWaitUri = toAbsoluteUri(baseUri, links['changes-wait']['href']);
                 }
             }
         });
@@ -124,7 +124,7 @@ class ChangesEngineUnit extends EngineUnitBase {
         var result = {};
 
         if (changesWaitUri) {
-            debug.info('changes-wait: [' + changesWaitUri + ']');
+            console.info('changes-wait: [' + changesWaitUri + ']');
             result.changesWaitUri = changesWaitUri;
         }
 
@@ -132,4 +132,4 @@ class ChangesEngineUnit extends EngineUnitBase {
     }
 }
 
-module.exports = ChangesEngineUnit;
+export default ChangesEngineUnit;

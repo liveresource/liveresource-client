@@ -1,5 +1,1 @@
-var getWindowLocationHref = function() {
-    return "http://example.com";
-};
-
-module.exports = getWindowLocationHref;
+export default () => "http://example.com";

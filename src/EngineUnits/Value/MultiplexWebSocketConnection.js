@@ -1,16 +1,15 @@
-var utils = require('utils');
-var debug = require('console');
-var mapWebSocketUrls = require('utils.mapWebSocketUrls');
-var WebSockHop = require('WebSockHop');
+import { toAbsoluteUri } from 'utils';
+import { mapWebSocketUrlToHttpUrl } from 'utils.mapWebSocketUrls';
+import WebSockHop from 'WebSockHop';
 
-var ConnectionBase = require('EngineUnits/ConnectionBase');
-var ValueResource = require('EngineUnits/Value/ValueResource');
+import ConnectionBase from 'EngineUnits/ConnectionBase';
+import ValueResource from 'EngineUnits/Value/ValueResource';
 
 class MultiplexWebSocketConnection extends ConnectionBase {
     constructor(engineUnit, endpoint) {
         super(engineUnit);
 
-        var endpointUri = endpoint.endpointUri;
+        const endpointUri = endpoint.endpointUri;
 
         this.uri = endpointUri;
         this.socket = new WebSockHop(endpointUri);
@@ -24,8 +23,8 @@ class MultiplexWebSocketConnection extends ConnectionBase {
             this.socket.on("message", data => {
 
                 var uri = data.uri;
-                var absoluteUri = utils.toAbsoluteUri(endpointUri, uri);
-                var httpUri = mapWebSocketUrls.mapWebSocketUrlToHttpUrl(absoluteUri);
+                var absoluteUri = toAbsoluteUri(endpointUri, uri);
+                var httpUri = mapWebSocketUrlToHttpUrl(absoluteUri);
 
                 engineUnit.updateResources(httpUri, data.headers, data.body);
 
@@ -67,19 +66,16 @@ class MultiplexWebSocketConnection extends ConnectionBase {
     }
 
     mapToHttpUri(uri) {
-        var absoluteUri = utils.toAbsoluteUri(this.uri, uri);
-        return mapWebSocketUrls.mapWebSocketUrlToHttpUrl(absoluteUri);
+        var absoluteUri = toAbsoluteUri(this.uri, uri);
+        return mapWebSocketUrlToHttpUrl(absoluteUri);
     }
 
     checkSubscriptions(items) {
 
-        var endpointUri = this.uri;
-        debug.info(`Multiplex WebSocket Request URI: ${endpointUri}`);
+        const endpointUri = this.uri;
+        console.info(`Multiplex WebSocket Request URI: ${endpointUri}`);
 
-        var subscribedItems = {};
-        for (let [uri, value] of utils.objectEntries(this.subscribedItems)) {
-            subscribedItems[uri] = value;
-        }
+        const subscribedItems = Object.assign({}, this.subscribedItems);
 
         for (var i = 0; i < items.length; i++) {
             var httpUri = this.mapToHttpUri(items[i].resourceHandler.uri);
@@ -90,9 +86,7 @@ class MultiplexWebSocketConnection extends ConnectionBase {
             }
         }
 
-        for (let [uri, value] of utils.objectEntries(subscribedItems)) {
-            this.unsubscribe(uri);
-        }
+        Object.keys(subscribedItems).forEach(uri => this.unsubscribe(uri));
 
     }
 
@@ -123,4 +117,4 @@ class MultiplexWebSocketConnection extends ConnectionBase {
     }
 }
 
-module.exports = MultiplexWebSocketConnection;
+export default MultiplexWebSocketConnection;

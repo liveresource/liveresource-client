@@ -1,45 +1,20 @@
-var findInArray = function(array, item) {
-    for (var i = 0, length = array.length; i < length; i++) {
-        if (array[i] === item) {
-            return i;
-        }
+export const toAbsoluteUri = (base, href) => {// RFC 3986
+
+    function parseURI(url) {
+        var m = String(url).replace(/^\s+|\s+$/g, '').match(/^([^:\/?#]+:)?(\/\/(?:[^:@]*(?::[^:@]*)?@)?(([^:\/?#]*)(?::(\d*))?))?([^?#]*)(\?[^#]*)?(#[\s\S]*)?/);
+        // authority = '//' + user + ':' + pass '@' + hostname + ':' port
+        return (m ? {
+            href     : m[0] || '',
+            protocol : m[1] || '',
+            authority: m[2] || '',
+            host     : m[3] || '',
+            hostname : m[4] || '',
+            port     : m[5] || '',
+            pathname : m[6] || '',
+            search   : m[7] || '',
+            hash     : m[8] || ''
+        } : null);
     }
-    return -1;
-};
-
-var isInArray = function(array, item) {
-    return !(findInArray(array, item) < 0);
-};
-
-var removeFromArray = function(array, item) {
-    var again = true;
-    while (again) {
-        var index = utils.findInArray(array, item);
-        if (index != -1) {
-            array.splice(index, 1);
-        } else {
-            again = false;
-        }
-    }
-};
-
-var parseURI = function(url) {
-    var m = String(url).replace(/^\s+|\s+$/g, '').match(/^([^:\/?#]+:)?(\/\/(?:[^:@]*(?::[^:@]*)?@)?(([^:\/?#]*)(?::(\d*))?))?([^?#]*)(\?[^#]*)?(#[\s\S]*)?/);
-    // authority = '//' + user + ':' + pass '@' + hostname + ':' port
-    return (m ? {
-        href     : m[0] || '',
-        protocol : m[1] || '',
-        authority: m[2] || '',
-        host     : m[3] || '',
-        hostname : m[4] || '',
-        port     : m[5] || '',
-        pathname : m[6] || '',
-        search   : m[7] || '',
-        hash     : m[8] || ''
-    } : null);
-}
-
-var toAbsoluteUri = function(base, href) {// RFC 3986
 
     function removeDotSegments(input) {
         var output = [];
@@ -64,71 +39,19 @@ var toAbsoluteUri = function(base, href) {// RFC 3986
     removeDotSegments(href.protocol || href.authority || href.pathname.charAt(0) === '/' ? href.pathname : (href.pathname ? ((base.authority && !base.pathname ? '/' : '') + base.pathname.slice(0, base.pathname.lastIndexOf('/') + 1) + href.pathname) : base.pathname)) +
     (href.protocol || href.authority || href.pathname ? href.search : (href.search || base.search)) +
     href.hash;
-}
-
-var forEachOwnKeyValue = function(obj, predicate) {
-    for(var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            var result = predicate(key, obj[key]);
-            if (typeof(result) != 'undefined' && !result) {
-                break;
-            }
-        }
-    }
 };
 
-var beginsWith = function(str, find) {
-    return str.substring(0, find.length) == find;
-};
+export const beginsWith = (str, find) => str.substring(0, find.length) == find;
 
-var replaceStart = function(str, find, replace) {
-    return replace + str.substring(find.length);
-};
+export const replaceStart = (str, find, replace) => replace + str.substring(find.length);
 
-var objectEntries = function(obj) {
-    let index = 0;
-
-    let propKeys = [];
-    for(var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            propKeys.push(key);
-        }
-    }
-
-    return {
-        [Symbol.iterator]() {
-            return this;
-        },
-        next() {
-            if (index < propKeys.length) {
-                let key = propKeys[index];
-                index++;
-                return { value: [key, obj[key]] };
-            } else {
-                return { done: true };
-            }
-        }
-    };
-}
-
-module.exports = {
-    findInArray,
-    isInArray,
-    removeFromArray,
-    toAbsoluteUri,
-    forEachOwnKeyValue,
-    objectEntries,
-    beginsWith,
-    replaceStart
-};
-
-Map.prototype.getOrCreate = function (key, create) {
+export const getOrCreateEntry = (map, key, create) => {
     let obj;
-    if (!this.has(key)) {
+    if (!map.has(key)) {
         obj = create();
-        this.set(key, obj);
+        map.set(key, obj);
     } else {
-        obj = this.get(key);
+        obj = map.get(key);
     }
     return obj;
 };

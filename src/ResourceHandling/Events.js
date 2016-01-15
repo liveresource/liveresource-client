@@ -1,39 +1,26 @@
-var utils = require('utils');
-var debug = require('console');
-
 class Events {
     constructor() {
         this._events = {};
     }
 
-    _getHandlersForType(type) {
-        if (!(type in this._events)) {
+    on(type, handler) {
+        if (this._events[type] == null) {
             this._events[type] = [];
         }
-        return this._events[type];
-    }
 
-    on(type, handler) {
-        var handlers = this._getHandlersForType(type);
-        handlers.push(handler);
-    }
-
-    off(type, handler = null) {
-        if (handler != null) {
-            var handlers = this._getHandlersForType(type);
-            utils.removeFromArray(handlers, handler);
-        } else {
-            delete this._events[type];
-        }
+        this._events[type].push(handler);
+        return () => {
+            if (this._events[type] != null) {
+                this._events[type] = this._events[type].filter(h => h != handler);
+            }
+        };
     }
 
     trigger(type, obj, ...args) {
-        var handlers = this._getHandlersForType(type).slice();
-        for (var i = 0, n = handlers.length; i < n; i++) {
-            var handler = handlers[i];
-            handler.apply(obj, args);
+        if (this._events[type] != null) {
+            this._events[type].slice().forEach(handler => handler.apply(obj, args));
         }
     }
 }
 
-module.exports = Events;
+export default Events;

@@ -30,7 +30,7 @@ var doBuild = function(options) {
 
     // set up the browserify instance on a task basis
     var b = browserify(entryPoint, { debug, standalone: expose, paths: [ './node_modules', './src', './lib' ] })
-        .transform(babelify, { presets: ['es2015'] });
+        .transform(babelify, { presets: ['es2015'], plugins: ['add-module-exports'] });
 
     var pipe = b.bundle()
         .on('error', gutil.log.bind(gutil, 'Browserify Error'))

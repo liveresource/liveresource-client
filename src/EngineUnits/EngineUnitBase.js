@@ -1,6 +1,4 @@
-var utils = require('utils');
-var debug = require('console');
-var Pollymer = require('Pollymer');
+import Pollymer from 'Pollymer';
 
 class EngineUnitBase {
     constructor() {
@@ -27,8 +25,8 @@ class EngineUnitBase {
     }
 
     updateResources(uri, headers, result) {
-        var resourceHandler = this.engine.getHandlerForUri(uri);
-        var resourceAspect = resourceHandler.getResourceAspectForInterestType(this.interestType);
+        const resourceHandler = this.engine.getHandlerForUri(uri);
+        const resourceAspect = resourceHandler.getResourceAspectForInterestType(this.interestType);
         if (resourceAspect != null) {
             this.updateResource(resourceAspect, headers, result);
         }
@@ -45,7 +43,7 @@ class EngineUnitBase {
     }
 
     createLongPoll() {
-        var request = new Pollymer.Request();
+        const request = new Pollymer.Request();
         this.setLongPollOptions(request);
         return request;
     }
@@ -69,13 +67,13 @@ class EngineUnitBase {
         // preferredEndpointsMap is a mapping of endpointUri -> endpoint to update to
 
         // Keep track of list of new endpoints to enable
-        var newEndpoints = new Map();
+        const newEndpoints = new Map();
         for (let [endpointUri, endpoint] of preferredEndpointsMap) {
             newEndpoints.set(endpointUri, endpoint);
         }
 
         // Make a list of endpoints to disable...
-        var endpointsToDisable = [];
+        const endpointsToDisable = [];
         for (let [endpointUri, connection] of currentConnectionsMap) {
             // This item is already known, so remove endpoint from "new endpoints".
             newEndpoints.delete(endpointUri);
@@ -98,26 +96,26 @@ class EngineUnitBase {
         }
 
         // ... and disable them.
-        for (var i = 0; i < endpointsToDisable.length; i++) {
-            var endpointUri = endpointsToDisable[i];
-            debug.info(`Remove '${label}' endpoint - '${endpointUri}'.`);
-            var connection = currentConnectionsMap.get(endpointUri);
+        for (let i = 0; i < endpointsToDisable.length; i++) {
+            const endpointUri = endpointsToDisable[i];
+            console.info(`Remove '${label}' endpoint - '${endpointUri}'.`);
+            const connection = currentConnectionsMap.get(endpointUri);
             connection.abort();
             currentConnectionsMap.delete(endpointUri);
         }
 
         // Create new requests for endpoints that need them.
         for (let [endpointUri, endpoint] of newEndpoints) {
-            debug.info(`Adding '${label}' endpoint - '${endpointUri}'.`);
+            console.info(`Adding '${label}' endpoint - '${endpointUri}'.`);
             currentConnectionsMap.set(endpointUri, createConnectionFunc(endpoint));
         }
 
         // For any current endpoint, make sure they are running.
         for (let [endpointUri, connection] of currentConnectionsMap) {
-            var endpoint = preferredEndpointsMap.get(endpointUri);
+            const endpoint = preferredEndpointsMap.get(endpointUri);
             connection.refresh(endpoint);
         }
     }
 }
 
-module.exports = EngineUnitBase;
+export default EngineUnitBase;

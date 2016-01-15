@@ -1,7 +1,4 @@
-var utils = require('utils');
-var debug = require('console');
-
-var ConnectionBase = require('EngineUnits/ConnectionBase');
+import ConnectionBase from 'EngineUnits/ConnectionBase';
 
 class ChangesWaitConnection extends ConnectionBase {
     constructor(engineUnit, endpoint) {
@@ -33,8 +30,8 @@ class ChangesWaitConnection extends ConnectionBase {
 
     refresh(endpoint) {
         if (!this.isActive) {
-            var requestUri = this.uri;
-            debug.info(`Changes Wait Request URI: ${requestUri}`);
+            const requestUri = this.uri;
+            console.info(`Changes Wait Request URI: ${requestUri}`);
             this._engineUnit.setLongPollOptions(this.request);
             this.request.start('GET', requestUri, {
                 'Wait': 55
@@ -44,4 +41,4 @@ class ChangesWaitConnection extends ConnectionBase {
     }
 }
 
-module.exports = ChangesWaitConnection;
+export default ChangesWaitConnection;

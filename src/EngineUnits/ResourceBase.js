@@ -4,4 +4,4 @@ class ResourceBase {
     }
 }
 
-module.exports = ResourceBase;
+export default ResourceBase;
