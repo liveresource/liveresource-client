@@ -68,7 +68,7 @@ app.get('/liveresource-latest.js.map', function(req, res) {
     var filePath = path.resolve(__dirname + '/../../build/output/liveresource-latest.js.map');
     res.sendFile(filePath);
 });
-app.get(/^\/.*\.js$/, express.static(__dirname + '/../common/client'));
+app.get(/^\/.*\.js(.map)?$/, express.static(__dirname + '/../common/client'));
 
 // chat api
 

@@ -29,7 +29,8 @@ var doBuild = function(options) {
     var headerTask = header(banner);
 
     // set up the browserify instance on a task basis
-    var b = browserify(entryPoint, { debug, standalone: expose, paths: [ './node_modules', './src', './lib' ] });
+    var b = browserify(entryPoint, { debug, standalone: expose, paths: [ './node_modules', './src', './lib' ] })
+        .transform(babelify, { presets: ['es2015'] });
 
     var pipe = b.bundle()
         .on('error', gutil.log.bind(gutil, 'Browserify Error'))
