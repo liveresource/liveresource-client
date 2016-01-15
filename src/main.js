@@ -1,3 +1,6 @@
+// Polyfill for ES5 environments
+import "babel-polyfill";
+
 // Build the default LiveResource constructor
 
 // 1. Create a new engine
