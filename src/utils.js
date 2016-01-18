@@ -55,3 +55,13 @@ export const getOrCreateEntry = (map, key, create) => {
     }
     return obj;
 };
+
+export const firstOrDefault = (array, predicate) => {
+    for (let index = 0; index < array.length; index++) {
+        const item = array[index];
+        if (predicate(item)) {
+            return item;
+        }
+    }
+    return null;
+};

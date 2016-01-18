@@ -1,9 +1,15 @@
+import { firstOrDefault } from 'utils';
+
 class ResourceHandler {
     constructor(engine, uri) {
         this._engine = engine;
         this.uri = uri;
 
-        this._resourceAspects = {};
+        // The "parts" of this resource.
+        this._resourceParts = [];
+
+        // References to the "LiveResource" instances
+        // that are pointed to by this resource handler
         this._liveResources = [];
 
         this._onceOnlyEventMap = new WeakMap();
@@ -52,16 +58,27 @@ class ResourceHandler {
     addEvent(type) {
         const engineUnit = this._engine.findEngineUnitForEvent(type);
         const interestType = engineUnit != null ? engineUnit.interestType : null;
-        if (interestType != null && !(interestType in this._resourceAspects)) {
-            this._resourceAspects[interestType] = engineUnit.start(this);
+        if (interestType != null) {
+            this.getOrAddResourcePart(interestType, type => engineUnit.start(this));
         }
 
         this.checkOnceOnlyEvents();
     }
 
+    getOrAddResourcePart(interestType, createFunc) {
+        if (interestType != null) {
+            var resourcePart = firstOrDefault(this._resourceParts, part => part.interestType == interestType);
+            if (resourcePart == null && createFunc != null) {
+                resourcePart = { interestType, part: createFunc(interestType) };
+                this._resourceParts.push(resourcePart);
+            }
+            return resourcePart != null ? resourcePart.part : null;
+        }
+        return null;
+    }
+
     getResourcePart(interestType) {
-        return (interestType != null && interestType in this._resourceAspects) ?
-            this._resourceAspects[interestType] : null;
+        return this.getOrAddResourcePart(interestType, null);
     }
 }
 
