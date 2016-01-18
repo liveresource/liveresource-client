@@ -26,10 +26,8 @@ class ResourceHandler {
         this._liveResources = this._liveResources.filter(x => x != liveResource);
     }
 
-    trigger(event, target, ...args) {
-        this._liveResources.forEach(liveResource => {
-            liveResource._events.trigger(event, target, ...args);
-        });
+    forEachLiveResource(callback) {
+        this._liveResources.forEach(liveResource => callback(liveResource));
     }
 
     triggerOnceOnlyEvent(event, target, ...args) {

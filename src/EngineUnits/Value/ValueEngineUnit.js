@@ -89,7 +89,7 @@ class ValueEngineUnit extends EngineUnit {
                 request = null;
             } else if (code >= 400) {
                 if (code == 404) {
-                    resourceHandler.trigger('removed', resourceHandler);
+                    resourceHandler.forEachLiveResource(liveResource => liveResource.trigger('removed', liveResource));
                     request = null;
                 } else {
                     request.retry();
@@ -125,8 +125,12 @@ class ValueEngineUnit extends EngineUnit {
     }
 
     triggerEvents(part, result) {
-        if (result != undefined) {
-            part.resourceHandler.trigger('value', part.resourceHandler, result);
+        if (result) {
+            part.resourceHandler.forEachLiveResource(liveResource => {
+                // TODO: ContentType
+                var parsed = liveResource.parse(this.interestType, result);
+                liveResource.trigger('value', liveResource, parsed);
+            });
         }
     }
 

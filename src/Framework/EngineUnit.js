@@ -54,6 +54,9 @@ class EngineUnit {
     }
 
     setLongPollOptions(request) {
+        // We are going to use 'parser' to do this
+        request.rawResponse = true;
+
         if (this.engine.options.longPollTimeoutMsecs) {
             request.timeout = this.engine.options.longPollTimeoutMsecs;
         } else {

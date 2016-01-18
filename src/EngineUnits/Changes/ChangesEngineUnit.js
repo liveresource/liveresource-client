@@ -1,4 +1,4 @@
-import { toAbsoluteUri } from 'utils';
+import { toAbsoluteUri, getOrCreateEntry } from 'utils';
 import { parseLinkHeader } from 'utils.parseLinkHeader';
 
 import EngineUnit from 'Framework/EngineUnit';
@@ -10,6 +10,8 @@ class ChangesEngineUnit extends EngineUnit {
         super();
 
         this._changesWaitConnections = [];
+
+        this._liveResourceItemIds = new WeakMap();
     }
 
     updateEndpointsToResourceParts(parts) {
@@ -83,13 +85,31 @@ class ChangesEngineUnit extends EngineUnit {
             part.resourceHandler.triggerOnceOnlyEvent('ready', part.resourceHandler);
         }
 
-        if (result != null && result != "") {
-            result.forEach(resultItem => {
-                if (resultItem.deleted) {
-                    part.resourceHandler.trigger('child-deleted', part.resourceHandler, resultItem);
-                } else {
-                    part.resourceHandler.trigger('child-added', part.resourceHandler, resultItem);
-                }
+        if (result) {
+            // parsed are CollectionEntry items.
+            part.resourceHandler.forEachLiveResource(liveResource => {
+                var itemIds = getOrCreateEntry(this._liveResourceItemIds, liveResource, () => []);
+
+                // TODO: ContentType
+                const parsed = liveResource.parse(this.interestType, result);
+                parsed.forEach(parsedItem => {
+                    if (parsedItem.deleted) {
+                        liveResource.trigger('child-deleted', liveResource, parsedItem.item);
+                        var deleteIndex = itemIds.indexOf(parsedItem.id);
+                        if (deleteIndex >= 0) {
+                            itemIds.splice(deleteIndex, 1);
+                        }
+                    } else {
+                        if (itemIds.indexOf(parsedItem.id) >= 0) {
+                            liveResource.trigger('child-updated', liveResource, parsedItem.item);
+                        } else {
+                            if (parsedItem.id) {
+                                itemIds.push(parsedItem.id);
+                            }
+                            liveResource.trigger('child-added', liveResource, parsedItem.item);
+                        }
+                    }
+                });
             });
         }
     }
