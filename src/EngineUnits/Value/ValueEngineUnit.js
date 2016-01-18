@@ -112,18 +112,14 @@ class ValueEngineUnit extends EngineUnit {
     updateResourcePart(resourcePart, headers, result) {
 
         const parsedHeaders = ValueEngineUnit.parseHeaders(headers, resourcePart.resourceHandler.uri);
+
         if (parsedHeaders.etag) {
             resourcePart.etag = parsedHeaders.etag;
         }
-        if (parsedHeaders.valueWaitUri) {
-            resourcePart.linkUris['VALUE_WAIT'] = parsedHeaders.valueWaitUri;
-        }
-        if (parsedHeaders.multiplexWaitUri) {
-            resourcePart.linkUris['MULTIPLEX_WAIT'] = parsedHeaders.multiplexWaitUri;
-        }
-        if (parsedHeaders.multiplexWsUri) {
-            resourcePart.linkUris['MULTIPLEX_WS'] = parsedHeaders.multiplexWsUri;
-        }
+
+        this.updateConnection(resourcePart, this._valueWaitConnections, 'VALUE_WAIT', parsedHeaders.valueWaitUri);
+        this.updateConnection(resourcePart, this._multiplexWaitConnections, 'MULTIPLEX_WAIT', parsedHeaders.multiplexWaitUri);
+        this.updateConnection(resourcePart, this._multiplexWebSocketConnections, 'MULTIPLEX_WS', parsedHeaders.multiplexWsUri);
 
         super.updateResourcePart(resourcePart, headers, result);
     }

@@ -67,18 +67,8 @@ class ChangesEngineUnit extends EngineUnit {
     updateResourcePart(resourcePart, headers, result) {
 
         var parsedHeaders = ChangesEngineUnit.parseHeaders(headers, resourcePart.resourceHandler.uri);
-        if (parsedHeaders.changesWaitUri) {
 
-            // need to also update connection as to reuse its resources.
-            var connection = this._changesWaitConnections
-                .find(connection => connection.uri == resourcePart.linkUris['CHANGES_WAIT']);
-
-            resourcePart.linkUris['CHANGES_WAIT'] = parsedHeaders.changesWaitUri;
-
-            if (connection != null) {
-                connection.uri = resourcePart.linkUris['CHANGES_WAIT'];
-            }
-        }
+        this.updateConnection(resourcePart, this._changesWaitConnections, 'CHANGES_WAIT', parsedHeaders.changesWaitUri);
 
         super.updateResourcePart(resourcePart, headers, result);
     }

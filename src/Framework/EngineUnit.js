@@ -127,6 +127,17 @@ class EngineUnit {
             currentConnections.push(connection);
         });
     }
+
+    updateConnection(resourcePart, connections, linkType, newLinkUri) {
+        if (newLinkUri) {
+            var connection = connections.find(conn => conn.uri === resourcePart.linkUris[linkType]);
+            if (connection != null) {
+                connection.uri = newLinkUri;
+            }
+            resourcePart.linkUris[linkType] = newLinkUri;
+
+        }
+    }
 }
 
 export default EngineUnit;
