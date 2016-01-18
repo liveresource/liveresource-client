@@ -59,7 +59,7 @@ class ResourceHandler {
         this.checkOnceOnlyEvents();
     }
 
-    getResourceAspectForInterestType(interestType) {
+    getResourcePart(interestType) {
         return (interestType != null && interestType in this._resourceAspects) ?
             this._resourceAspects[interestType] : null;
     }

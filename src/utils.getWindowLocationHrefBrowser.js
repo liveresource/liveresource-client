@@ -1,1 +1,1 @@
-export default () => window.location.href;
+export const getWindowLocationHref = () => window.location.href;

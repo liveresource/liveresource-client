@@ -1,6 +1,6 @@
 import Pollymer from 'Pollymer';
 
-class EngineUnitBase {
+class EngineUnit {
     constructor() {
         this.engine = null;
     }
@@ -26,7 +26,7 @@ class EngineUnitBase {
 
     updateResources(uri, headers, result) {
         const resourceHandler = this.engine.getHandlerForUri(uri);
-        const resourceAspect = resourceHandler.getResourceAspectForInterestType(this.interestType);
+        const resourceAspect = resourceHandler.getResourcePart(this.interestType);
         if (resourceAspect != null) {
             this.updateResource(resourceAspect, headers, result);
         }
@@ -118,4 +118,4 @@ class EngineUnitBase {
     }
 }
 
-export default EngineUnitBase;
+export default EngineUnit;

@@ -1,11 +1,11 @@
 import { toAbsoluteUri } from 'utils';
-import parseLinkHeader from 'utils.parseLinkHeader';
+import { parseLinkHeader } from 'utils.parseLinkHeader';
 
-import EngineUnitBase from 'EngineUnits/EngineUnitBase';
-import ChangesResource from 'EngineUnits/Changes/ChangesResource';
+import EngineUnit from 'Framework/EngineUnit';
+import ChangesResource from 'EngineUnits/Changes/ChangesResourcePart';
 import ChangesWaitConnection from 'EngineUnits/Changes/ChangesWaitConnection';
 
-class ChangesEngineUnit extends EngineUnitBase {
+class ChangesEngineUnit extends EngineUnit {
     constructor() {
         super();
 

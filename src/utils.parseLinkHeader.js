@@ -4,7 +4,7 @@
 //   { reltype1: { href: url, otherparam1: val }, reltype2: { ... } }
 // or return null if parse fails
 
-export default (header) => {
+export const parseLinkHeader = (header) => {
     if (header.length == 0) {
         return null;
     }

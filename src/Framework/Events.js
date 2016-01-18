@@ -21,6 +21,6 @@ class Events {
             this._events[type].slice().forEach(handler => handler.apply(obj, args));
         }
     }
-}
+};
 
 export default Events;

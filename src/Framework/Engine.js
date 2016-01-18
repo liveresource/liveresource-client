@@ -1,7 +1,7 @@
 import { getOrCreateEntry } from 'utils';
 import mapWebSocketUrls from 'utils.mapWebSocketUrls';
 
-import ResourceHandler from 'ResourceHandling/ResourceHandler';
+import ResourceHandler from 'Framework/ResourceHandler';
 
 class Engine {
     constructor() {
@@ -25,12 +25,14 @@ class Engine {
 
     getResourceAspectsForInterestType(interestType) {
         var resourceAspects = [];
-        for (let [uri, resourceHandler] of this._resourceHandlers) {
-            var resourceAspect = resourceHandler.getResourceAspectForInterestType(interestType);
+
+        this._resourceHandlers.forEach(resourceHandler => {
+            var resourceAspect = resourceHandler.getResourcePart(interestType);
             if (resourceAspect != null) {
                 resourceAspects.push(resourceAspect);
             }
-        }
+        });
+
         return resourceAspects;
     }
 

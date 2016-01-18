@@ -1,1 +1,1 @@
-export default () => "http://example.com";
+export const getWindowLocationHref = () => "http://example.com";

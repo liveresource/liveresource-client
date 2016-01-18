@@ -1,6 +1,6 @@
-import ResourceBase from 'EngineUnits/ResourceBase';
+import ResourcePart from 'Framework/ResourcePart';
 
-class ChangesResource extends ResourceBase {
+class ChangesResourcePart extends ResourcePart {
     constructor(resourceHandler) {
         super(resourceHandler);
         this.started = false;
@@ -8,4 +8,4 @@ class ChangesResource extends ResourceBase {
     }
 }
 
-export default ChangesResource;
+export default ChangesResourcePart;

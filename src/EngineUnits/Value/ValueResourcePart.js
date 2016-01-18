@@ -1,6 +1,6 @@
-import ResourceBase from 'EngineUnits/ResourceBase';
+import ResourcePart from 'Framework/ResourcePart';
 
-class ValueResource extends ResourceBase {
+class ValueResourcePart extends ResourcePart {
     constructor(resourceHandler) {
         super(resourceHandler);
         this.started = false;
@@ -11,4 +11,4 @@ class ValueResource extends ResourceBase {
     }
 }
 
-export default ValueResource;
+export default ValueResourcePart;

@@ -1,7 +1,7 @@
-class ResourceBase {
+class ResourcePart {
     constructor(resourceHandler) {
         this.resourceHandler = resourceHandler;
     }
 }
 
-export default ResourceBase;
+export default ResourcePart;

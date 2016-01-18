@@ -1,6 +1,6 @@
-import ConnectionBase from 'EngineUnits/ConnectionBase';
+import Connection from 'Framework/Connection';
 
-class ValueWaitConnection extends ConnectionBase {
+class ValueWaitConnection extends Connection {
     constructor(engineUnit, endpoint) {
         super(engineUnit);
 

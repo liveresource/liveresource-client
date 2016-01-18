@@ -1,9 +1,9 @@
-var utils = require('utils');
+import { toAbsoluteUri } from 'utils';
 
-import ValueResource from 'EngineUnits/Value/ValueResource';
-import ConnectionBase from 'EngineUnits/ConnectionBase';
+import Connection from 'Framework/Connection';
+import ValueResource from 'EngineUnits/Value/ValueResourcePart';
 
-class MultiplexWaitConnection extends ConnectionBase {
+class MultiplexWaitConnection extends Connection {
     constructor(engineUnit, endpoint) {
         super(engineUnit);
 
@@ -20,7 +20,7 @@ class MultiplexWaitConnection extends ConnectionBase {
                 Object.keys(result).forEach(uri => {
                     const item = result[uri];
                     console.info(`got data for uri: ${uri}`);
-                    var absoluteUri = utils.toAbsoluteUri(this.uri, uri);
+                    var absoluteUri = toAbsoluteUri(this.uri, uri);
                     engineUnit.updateResources(absoluteUri, item.headers, item.body);
                 });
 

@@ -1,5 +1,5 @@
 import { toAbsoluteUri, beginsWith, replaceStart } from 'utils';
-import getWindowLocationHref from 'utils.getWindowLocationHref';
+import { getWindowLocationHref } from 'utils.getWindowLocationHref';
 
 export const mapHttpUrlToWebSocketUrl = (url) => {
     const windowLocationHref = getWindowLocationHref();

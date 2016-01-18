@@ -1,6 +1,6 @@
-import ConnectionBase from 'EngineUnits/ConnectionBase';
+import Connection from 'Framework/Connection';
 
-class ChangesWaitConnection extends ConnectionBase {
+class ChangesWaitConnection extends Connection {
     constructor(engineUnit, endpoint) {
         super(engineUnit);
 

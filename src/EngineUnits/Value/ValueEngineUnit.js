@@ -2,13 +2,13 @@ import { getOrCreateEntry, toAbsoluteUri } from 'utils';
 import { mapHttpUrlToWebSocketUrl } from 'utils.mapWebSocketUrls';
 import { parseLinkHeader } from 'utils.parseLinkHeader';
 
-import EngineUnitBase from 'EngineUnits/EngineUnitBase';
-import ValueResource from 'EngineUnits/Value/ValueResource';
+import EngineUnit from 'Framework/EngineUnit';
+import ValueResource from 'EngineUnits/Value/ValueResourcePart';
 import ValueWaitConnection from 'EngineUnits/Value/ValueWaitConnection';
 import MultiplexWebSocketConnection from 'EngineUnits/Value/MultiplexWebSocketConnection';
 import MultiplexWaitConnection from 'EngineUnits/Value/MultiplexWaitConnection';
 
-class ValueEngineUnit extends EngineUnitBase {
+class ValueEngineUnit extends EngineUnit {
     constructor() {
         super();
 

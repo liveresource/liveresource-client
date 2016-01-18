@@ -1,7 +1,7 @@
 import { toAbsoluteUri } from 'utils';
-import getWindowLocationHref from 'utils.getWindowLocationHref';
+import { getWindowLocationHref } from 'utils.getWindowLocationHref';
 
-import Events from 'ResourceHandling/Events';
+import Events from 'Framework/Events';
 
 class LiveResource {
     constructor(staticClass, engine, uri) {

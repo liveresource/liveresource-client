@@ -2,10 +2,10 @@ import { toAbsoluteUri } from 'utils';
 import { mapWebSocketUrlToHttpUrl } from 'utils.mapWebSocketUrls';
 import WebSockHop from 'WebSockHop';
 
-import ConnectionBase from 'EngineUnits/ConnectionBase';
-import ValueResource from 'EngineUnits/Value/ValueResource';
+import Connection from 'Framework/Connection';
+import ValueResource from 'EngineUnits/Value/ValueResourcePart';
 
-class MultiplexWebSocketConnection extends ConnectionBase {
+class MultiplexWebSocketConnection extends Connection {
     constructor(engineUnit, endpoint) {
         super(engineUnit);
 

@@ -4,7 +4,7 @@ import "babel-polyfill";
 // Build the default LiveResource constructor
 
 // 1. Create a new engine
-const Engine = require('Engine/Engine');
+const Engine = require('Framework/Engine');
 const engine = new Engine();
 
 // 2. Add engine units
@@ -16,7 +16,7 @@ engine.addEngineUnit(new ChangesEngineUnit());
 
 // 3. Create a constructor that would create LiveResource instances
 // associated with this engine.
-const LiveResource = require('ResourceHandling/LiveResource');
+const LiveResource = require('Framework/LiveResource');
 const liveResourceClass = LiveResource.createLiveResourceConstructorWithEngine(engine);
 
 export default liveResourceClass;
