@@ -23,7 +23,7 @@ class Engine {
         return getOrCreateEntry(this._resourceHandlers, uri, () => new ResourceHandler(this, uri));
     }
 
-    getResourceAspectsForInterestType(interestType) {
+    getAllResourcePartsForInterestType(interestType) {
         var resourceAspects = [];
 
         this._resourceHandlers.forEach(resourceHandler => {
@@ -49,10 +49,9 @@ class Engine {
             // restart our long poll
             console.info('engine: setup long polls');
 
-            for(var i = 0; i < this._engineUnits.length; i++) {
-                var engineUnit = this._engineUnits[i];
+            this._engineUnits.forEach(engineUnit => {
                 engineUnit.update();
-            }
+            });
         });
     }
 

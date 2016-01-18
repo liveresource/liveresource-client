@@ -6,6 +6,11 @@ class EngineUnit {
     }
 
     update() {
+        var resourceParts = this.engine.getAllResourcePartsForInterestType(this.interestType);
+        this.updateWithParts(resourceParts);
+    }
+
+    updateWithParts(resourceParts) {
     }
 
     updateEngine() {

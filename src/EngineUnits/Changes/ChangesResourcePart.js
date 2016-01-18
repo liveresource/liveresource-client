@@ -3,8 +3,9 @@ import ResourcePart from 'Framework/ResourcePart';
 class ChangesResourcePart extends ResourcePart {
     constructor(resourceHandler) {
         super(resourceHandler);
+
         this.started = false;
-        this.changesWaitUri = null;
+        this.linkUris['CHANGES_WAIT'] = null;
     }
 }
 

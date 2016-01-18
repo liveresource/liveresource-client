@@ -1,6 +1,7 @@
 class ResourcePart {
     constructor(resourceHandler) {
         this.resourceHandler = resourceHandler;
+        this.linkUris = {};
     }
 }
 

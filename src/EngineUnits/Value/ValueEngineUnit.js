@@ -17,23 +17,21 @@ class ValueEngineUnit extends EngineUnit {
         this._multiplexWaitConnections = new Map();
     }
 
-    update() {
-
-        const resourceAspects = this.engine.getResourceAspectsForInterestType(this.interestType);
+    updateWithParts(parts) {
 
         const valueWaitItems = new Map();
         const multiplexWebSocketItems = new Map();
         const multiplexWaitItems = new Map();
 
-        for (let res of resourceAspects) {
-            if (MultiplexWebSocketConnection.isWebSockHopAvailable && res.multiplexWebSocketUri) {
-                var multiplexWebSocketPoll = getOrCreateEntry(multiplexWebSocketItems, res.multiplexWebSocketUri, () => ({items: []}));
+        for (let res of parts) {
+            if (MultiplexWebSocketConnection.isWebSockHopAvailable && res.linkUris['MULTIPLEX_WS'] != null) {
+                var multiplexWebSocketPoll = getOrCreateEntry(multiplexWebSocketItems, res.linkUris['MULTIPLEX_WS'], () => ({items: []}));
                 multiplexWebSocketPoll.items.push(res);
-            } else if (res.multiplexWaitUri) {
-                var multiplexWaitPoll = getOrCreateEntry(multiplexWaitItems, res.multiplexWaitUri, () => ({items: []}));
+            } else if (res.linkUris['MULTIPLEX_WAIT'] != null) {
+                var multiplexWaitPoll = getOrCreateEntry(multiplexWaitItems, res.linkUris['MULTIPLEX_WAIT'], () => ({items: []}));
                 multiplexWaitPoll.items.push(res);
             } else {
-                valueWaitItems.set(res.valueWaitUri, res);
+                valueWaitItems.set(res.linkUris['VALUE_WAIT'], res);
             }
         }
 
@@ -44,10 +42,10 @@ class ValueEngineUnit extends EngineUnit {
             multiplexWebSocketEndpoints.set(endpointUri, { endpointUri, items: endpoint.items });
         }
         for (let [endpointUri, endpoint] of multiplexWaitItems) {
-            if (endpoint.items.length > 1 || !endpoint.items[0].valueWaitUri) {
+            if (endpoint.items.length > 1 || !endpoint.items[0].linkUris['VALUE_WAIT']) {
                 multiplexWaitEndpoints.set(endpointUri, { endpointUri, items: endpoint.items });
             } else {
-                valueWaitItems.set(endpoint.items[0].valueWaitUri, endpoint.items[0]);
+                valueWaitItems.set(endpoint.items[0].linkUris['VALUE_WAIT'], endpoint.items[0]);
             }
         }
         for (let [endpointUri, endpoint] of valueWaitItems) {
@@ -119,13 +117,13 @@ class ValueEngineUnit extends EngineUnit {
             resource.etag = parsedHeaders.etag;
         }
         if (parsedHeaders.valueWaitUri) {
-            resource.valueWaitUri = parsedHeaders.valueWaitUri;
+            resource.linkUris['VALUE_WAIT'] = parsedHeaders.valueWaitUri;
         }
         if (parsedHeaders.multiplexWaitUri) {
-            resource.multiplexWaitUri = parsedHeaders.multiplexWaitUri;
+            resource.linkUris['MULTIPLEX_WAIT'] = parsedHeaders.multiplexWaitUri;
         }
         if (parsedHeaders.multiplexWsUri) {
-            resource.multiplexWebSocketUri = parsedHeaders.multiplexWsUri;
+            resource.linkUris['MULTIPLEX_WS'] = parsedHeaders.multiplexWsUri;
         }
 
         super.updateResource(resource, headers, result);

@@ -12,14 +12,12 @@ class ChangesEngineUnit extends EngineUnit {
         this._changesWaitConnections = new Map();
     }
 
-    update() {
-
-        var resourceAspects = this.engine.getResourceAspectsForInterestType(this.interestType);
+    updateWithParts(parts) {
 
         var changesWaitItems = new Map();
-        for (let res of resourceAspects) {
-            if (res.changesWaitUri) {
-                changesWaitItems.set(res.changesWaitUri, res);
+        for (let res of parts) {
+            if (res.linkUris['CHANGES_WAIT']) {
+                changesWaitItems.set(res.linkUris['CHANGES_WAIT'], res);
             }
         }
 
@@ -45,7 +43,7 @@ class ChangesEngineUnit extends EngineUnit {
 
             if (code >= 200 && code < 300) {
                 this.updateResource(resource, headers, result);
-                if (!resource.changesWaitUri) {
+                if (!resource.linkUris['CHANGES_WAIT']) {
                     console.info('no changes-wait link');
                 }
                 this.updateEngine();
@@ -72,18 +70,18 @@ class ChangesEngineUnit extends EngineUnit {
         var parsedHeaders = ChangesEngineUnit.parseHeaders(headers, resource.resourceHandler.uri);
         if (parsedHeaders.changesWaitUri) {
             // -- HACK: Try to reuse Pollymer requests for this, for now.
-            var connection = this._changesWaitConnections.get(resource.changesWaitUri);
+            var connection = this._changesWaitConnections.get(resource.linkUris['CHANGES_WAIT']);
             if (connection) {
-                this._changesWaitConnections.delete(resource.changesWaitUri);
+                this._changesWaitConnections.delete(resource.linkUris['CHANGES_WAIT']);
             }
             // -- END HACK
 
-            resource.changesWaitUri = parsedHeaders.changesWaitUri;
+            resource.linkUris['CHANGES_WAIT'] = parsedHeaders.changesWaitUri;
 
             // -- HACK
             if (connection) {
-                this._changesWaitConnections.set(resource.changesWaitUri, connection);
-                connection.uri = resource.changesWaitUri;
+                this._changesWaitConnections.set(resource.linkUris['CHANGES_WAIT'], connection);
+                connection.uri = resource.linkUris['CHANGES_WAIT'];
             }
             // -- END HACK
         }
@@ -93,6 +91,9 @@ class ChangesEngineUnit extends EngineUnit {
 
     triggerEvents(resource, result) {
 
+        // TODO: This timing of emitting 'ready' is incorrect.
+        // It should be done separately, because it means the listening connection
+        // is established.
         if (!resource.started) {
             resource.started = true;
             resource.resourceHandler.triggerOnceOnlyEvent('ready', resource.resourceHandler);
