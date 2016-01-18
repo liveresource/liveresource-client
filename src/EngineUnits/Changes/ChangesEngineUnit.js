@@ -9,7 +9,7 @@ class ChangesEngineUnit extends EngineUnit {
     constructor() {
         super();
 
-        this._changesWaitConnections = new Map();
+        this._changesWaitConnections = [];
     }
 
     updateEndpointsToResourceParts(parts) {
@@ -26,13 +26,12 @@ class ChangesEngineUnit extends EngineUnit {
             changesWaitEndpoints.set(endpointUri, { endpointUri, item: endpoint });
         });
 
-        this._adjustEndpoints(
+        this.updateConnectionsToMatchEndpoints(
             'Changes Wait',
             this._changesWaitConnections,
             changesWaitEndpoints,
             endpoint => new ChangesWaitConnection(this, endpoint)
         );
-
     }
 
     createResourcePart(resourceHandler) {
@@ -69,21 +68,16 @@ class ChangesEngineUnit extends EngineUnit {
 
         var parsedHeaders = ChangesEngineUnit.parseHeaders(headers, resourcePart.resourceHandler.uri);
         if (parsedHeaders.changesWaitUri) {
-            // -- HACK: Try to reuse Pollymer requests for this, for now.
-            var connection = this._changesWaitConnections.get(resourcePart.linkUris['CHANGES_WAIT']);
-            if (connection) {
-                this._changesWaitConnections.delete(resourcePart.linkUris['CHANGES_WAIT']);
-            }
-            // -- END HACK
+
+            // need to also update connection as to reuse its resources.
+            var connection = this._changesWaitConnections
+                .find(connection => connection.uri == resourcePart.linkUris['CHANGES_WAIT']);
 
             resourcePart.linkUris['CHANGES_WAIT'] = parsedHeaders.changesWaitUri;
 
-            // -- HACK
-            if (connection) {
-                this._changesWaitConnections.set(resourcePart.linkUris['CHANGES_WAIT'], connection);
+            if (connection != null) {
                 connection.uri = resourcePart.linkUris['CHANGES_WAIT'];
             }
-            // -- END HACK
         }
 
         super.updateResourcePart(resourcePart, headers, result);

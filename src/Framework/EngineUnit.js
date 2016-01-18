@@ -66,10 +66,15 @@ class EngineUnit {
         }
     }
 
-    _adjustEndpoints(label, currentConnectionsMap, preferredEndpointsMap, createConnectionFunc) {
+    updateConnectionsToMatchEndpoints(label, currentConnections, preferredEndpointsMap, createConnectionFunc) {
 
         // currentConnectionsMap is a mapping of endpointUri -> connection
         // preferredEndpointsMap is a mapping of endpointUri -> endpoint to update to
+
+        var currentConnectionsMap = new Map();
+        currentConnections.forEach(item => {
+            currentConnectionsMap.set(item.uri, item);
+        });
 
         // Keep track of list of new endpoints to enable
         const newEndpoints = new Map();
@@ -115,9 +120,11 @@ class EngineUnit {
         });
 
         // For any current endpoint, make sure they are running.
+        currentConnections.length = 0;
         currentConnectionsMap.forEach((connection, endpointUri) => {
             const endpoint = preferredEndpointsMap.get(endpointUri);
             connection.refresh(endpoint);
+            currentConnections.push(connection);
         });
     }
 }

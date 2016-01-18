@@ -12,9 +12,9 @@ class ValueEngineUnit extends EngineUnit {
     constructor() {
         super();
 
-        this._valueWaitConnections = new Map();
-        this._multiplexWebSocketConnections = new Map();
-        this._multiplexWaitConnections = new Map();
+        this._valueWaitConnections = [];
+        this._multiplexWebSocketConnections = [];
+        this._multiplexWaitConnections = [];
     }
 
     updateEndpointsToResourceParts(parts) {
@@ -51,19 +51,19 @@ class ValueEngineUnit extends EngineUnit {
             valueWaitEndpoints.set(endpointUri, { endpointUri, item: endpoint });
         });
 
-        this._adjustEndpoints(
+        this.updateConnectionsToMatchEndpoints(
             'Value Wait',
             this._valueWaitConnections,
             valueWaitEndpoints,
             endpoint => new ValueWaitConnection(this, endpoint)
         );
-        this._adjustEndpoints(
+        this.updateConnectionsToMatchEndpoints(
             'Multiplex Web Socket',
             this._multiplexWebSocketConnections,
             multiplexWebSocketEndpoints,
             endpoint => new MultiplexWebSocketConnection(this, endpoint)
         );
-        this._adjustEndpoints(
+        this.updateConnectionsToMatchEndpoints(
             'Multiplex Wait',
             this._multiplexWaitConnections,
             multiplexWaitEndpoints,
