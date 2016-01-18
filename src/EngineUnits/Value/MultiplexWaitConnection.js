@@ -35,20 +35,23 @@ class MultiplexWaitConnection extends Connection {
         if (endpoint.items.length != this.resItems.length) {
             removedOrChanged = true
         } else {
+
+            // At this point we know the two arrays are the same length.
+            // Sort them and then compare their contents one by one.
+
             const preferredEndpointItemUris = [];
-            var i;
-            for (i = 0; i < endpoint.items.length; i++) {
-                preferredEndpointItemUris.push(endpoint.items[i].resourceHandler.uri);
-            }
+            endpoint.items.forEach(item => {
+                preferredEndpointItemUris.push(item.resourceHandler.uri);
+            });
             preferredEndpointItemUris.sort();
 
             const pollResourceItemUris = [];
-            for (i = 0; i < this.resItems.length; i++) {
-                pollResourceItemUris.push(this.resItems[i].resourceHandler.uri);
-            }
+            this.resItems.forEach(resItem => {
+                pollResourceItemUris.push(resItem.resourceHandler.uri);
+            });
             pollResourceItemUris.sort();
 
-            for (i = 0; i < preferredEndpointItemUris.length; i++) {
+            for (let i = 0; i < preferredEndpointItemUris.length; i++) {
                 if (preferredEndpointItemUris[i] != pollResourceItemUris[i]) {
                     removedOrChanged = true;
                     break;
@@ -65,11 +68,10 @@ class MultiplexWaitConnection extends Connection {
     refresh(endpoint) {
         if (!this.isActive) {
             const urlSegments = [];
-            for (var i = 0; i < this.resItems.length; i++) {
-                var res = this.resItems[i];
+            this.resItems.forEach(res => {
                 var uri = res.resourceHandler.uri;
                 urlSegments.push(`u=${encodeURIComponent(uri)}&inm=${encodeURIComponent(res.etag)}`);
-            }
+            });
 
             const requestUri = `${this.uri}?${urlSegments.join('&')}`;
             console.info(`Multiplex Wait Request URI: ${requestUri}`);

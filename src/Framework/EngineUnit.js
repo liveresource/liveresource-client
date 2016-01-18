@@ -7,17 +7,17 @@ class EngineUnit {
 
     update() {
         var resourceParts = this.engine.getAllResourcePartsForInterestType(this.interestType);
-        this.updateWithParts(resourceParts);
+        this.updateEndpointsToResourceParts(resourceParts);
     }
 
-    updateWithParts(resourceParts) {
+    updateEndpointsToResourceParts(resourceParts) {
     }
 
     updateEngine() {
         this.engine.update();
     }
 
-    start(resourceHandler) {
+    createResourcePart(resourceHandler) {
         return null;
     }
 
@@ -31,17 +31,17 @@ class EngineUnit {
 
     updateResources(uri, headers, result) {
         const resourceHandler = this.engine.getHandlerForUri(uri);
-        const resourceAspect = resourceHandler.getResourcePart(this.interestType);
-        if (resourceAspect != null) {
-            this.updateResource(resourceAspect, headers, result);
+        const resourcePart = resourceHandler.getResourcePart(this.interestType);
+        if (resourcePart != null) {
+            this.updateResourcePart(resourcePart, headers, result);
         }
     }
 
-    updateResource(resource, headers, result) {
-        this.triggerEvents(resource, result);
+    updateResourcePart(resourcePart, headers, result) {
+        this.triggerEvents(resourcePart, result);
     }
 
-    triggerEvents(aspect, result) {
+    triggerEvents(resourcePart, result) {
     }
 
     static parseHeaders(headers, baseUri) {
@@ -73,13 +73,13 @@ class EngineUnit {
 
         // Keep track of list of new endpoints to enable
         const newEndpoints = new Map();
-        for (let [endpointUri, endpoint] of preferredEndpointsMap) {
+        preferredEndpointsMap.forEach((endpoint, endpointUri) => {
             newEndpoints.set(endpointUri, endpoint);
-        }
+        });
 
         // Make a list of endpoints to disable...
         const endpointsToDisable = [];
-        for (let [endpointUri, connection] of currentConnectionsMap) {
+        currentConnectionsMap.forEach((connection, endpointUri) => {
             // This item is already known, so remove endpoint from "new endpoints".
             newEndpoints.delete(endpointUri);
 
@@ -98,28 +98,27 @@ class EngineUnit {
                 // If marked, add to "delete" list
                 endpointsToDisable.push(endpointUri);
             }
-        }
+        });
 
         // ... and disable them.
-        for (let i = 0; i < endpointsToDisable.length; i++) {
-            const endpointUri = endpointsToDisable[i];
+        endpointsToDisable.forEach(endpointUri => {
             console.info(`Remove '${label}' endpoint - '${endpointUri}'.`);
             const connection = currentConnectionsMap.get(endpointUri);
             connection.abort();
             currentConnectionsMap.delete(endpointUri);
-        }
+        });
 
         // Create new requests for endpoints that need them.
-        for (let [endpointUri, endpoint] of newEndpoints) {
+        newEndpoints.forEach((endpoint, endpointUri) => {
             console.info(`Adding '${label}' endpoint - '${endpointUri}'.`);
             currentConnectionsMap.set(endpointUri, createConnectionFunc(endpoint));
-        }
+        });
 
         // For any current endpoint, make sure they are running.
-        for (let [endpointUri, connection] of currentConnectionsMap) {
+        currentConnectionsMap.forEach((connection, endpointUri) => {
             const endpoint = preferredEndpointsMap.get(endpointUri);
             connection.refresh(endpoint);
-        }
+        });
     }
 }
 

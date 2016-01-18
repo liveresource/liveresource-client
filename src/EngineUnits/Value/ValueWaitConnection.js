@@ -13,7 +13,7 @@ class ValueWaitConnection extends Connection {
             this.isActive = false;
 
             if (code >= 200 && code < 300) {
-                engineUnit.updateResource(this.res, headers, result);
+                engineUnit.updateResourcePart(this.res, headers, result);
             }
 
             this._engineUnit.updateEngine();

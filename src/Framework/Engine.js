@@ -24,16 +24,16 @@ class Engine {
     }
 
     getAllResourcePartsForInterestType(interestType) {
-        var resourceAspects = [];
+        var resourceParts = [];
 
         this._resourceHandlers.forEach(resourceHandler => {
-            var resourceAspect = resourceHandler.getResourcePart(interestType);
-            if (resourceAspect != null) {
-                resourceAspects.push(resourceAspect);
+            var resourcePart = resourceHandler.getResourcePart(interestType);
+            if (resourcePart != null) {
+                resourceParts.push(resourcePart);
             }
         });
 
-        return resourceAspects;
+        return resourceParts;
     }
 
     update() {
@@ -61,13 +61,7 @@ class Engine {
     }
 
     findEngineUnitForEvent(eventName) {
-        for (var i = 0; i < this._engineUnits.length; i++) {
-            var engineUnit = this._engineUnits[i];
-            if (engineUnit.events.indexOf(eventName) >= 0) {
-                return engineUnit;
-            }
-        }
-        return null;
+        return this._engineUnits.find(engineUnit => engineUnit.events.indexOf(eventName) >= 0);
     }
 }
 

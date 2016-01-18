@@ -77,14 +77,14 @@ class MultiplexWebSocketConnection extends Connection {
 
         const subscribedItems = Object.assign({}, this.subscribedItems);
 
-        for (var i = 0; i < items.length; i++) {
-            var httpUri = this.mapToHttpUri(items[i].resourceHandler.uri);
+        items.length.forEach(item => {
+            var httpUri = this.mapToHttpUri(item.resourceHandler.uri);
             if (httpUri in subscribedItems) {
                 delete subscribedItems[httpUri];
             } else {
                 this.subscribe(httpUri);
             }
-        }
+        });
 
         Object.keys(subscribedItems).forEach(uri => this.unsubscribe(uri));
 

@@ -40,6 +40,8 @@ class LiveResource {
                 return new LiveResource(this.constructor, engine, uri);
             }
         };
+        // TODO: Probably better to do this another way.
+        // This is flaky.
         LiveResourceClass.options = {
             longPollTimeoutMsecs: 0,
             maxLongPollDelayMsecs: 0

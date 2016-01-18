@@ -3,7 +3,7 @@ import { mapHttpUrlToWebSocketUrl } from 'utils.mapWebSocketUrls';
 import { parseLinkHeader } from 'utils.parseLinkHeader';
 
 import EngineUnit from 'Framework/EngineUnit';
-import ValueResource from 'EngineUnits/Value/ValueResourcePart';
+import ValueResourcePart from 'EngineUnits/Value/ValueResourcePart';
 import ValueWaitConnection from 'EngineUnits/Value/ValueWaitConnection';
 import MultiplexWebSocketConnection from 'EngineUnits/Value/MultiplexWebSocketConnection';
 import MultiplexWaitConnection from 'EngineUnits/Value/MultiplexWaitConnection';
@@ -17,40 +17,39 @@ class ValueEngineUnit extends EngineUnit {
         this._multiplexWaitConnections = new Map();
     }
 
-    updateWithParts(parts) {
+    updateEndpointsToResourceParts(parts) {
 
         const valueWaitItems = new Map();
         const multiplexWebSocketItems = new Map();
         const multiplexWaitItems = new Map();
-
-        for (let res of parts) {
-            if (MultiplexWebSocketConnection.isWebSockHopAvailable && res.linkUris['MULTIPLEX_WS'] != null) {
-                var multiplexWebSocketPoll = getOrCreateEntry(multiplexWebSocketItems, res.linkUris['MULTIPLEX_WS'], () => ({items: []}));
-                multiplexWebSocketPoll.items.push(res);
-            } else if (res.linkUris['MULTIPLEX_WAIT'] != null) {
-                var multiplexWaitPoll = getOrCreateEntry(multiplexWaitItems, res.linkUris['MULTIPLEX_WAIT'], () => ({items: []}));
-                multiplexWaitPoll.items.push(res);
+        parts.forEach(part => {
+            if (MultiplexWebSocketConnection.isWebSockHopAvailable && part.linkUris['MULTIPLEX_WS'] != null) {
+                var multiplexWebSocketPoll = getOrCreateEntry(multiplexWebSocketItems, part.linkUris['MULTIPLEX_WS'], () => ({items: []}));
+                multiplexWebSocketPoll.items.push(part);
+            } else if (part.linkUris['MULTIPLEX_WAIT'] != null) {
+                var multiplexWaitPoll = getOrCreateEntry(multiplexWaitItems, part.linkUris['MULTIPLEX_WAIT'], () => ({items: []}));
+                multiplexWaitPoll.items.push(part);
             } else {
-                valueWaitItems.set(res.linkUris['VALUE_WAIT'], res);
+                valueWaitItems.set(part.linkUris['VALUE_WAIT'], part);
             }
-        }
+        });
 
         const valueWaitEndpoints = new Map();
         const multiplexWebSocketEndpoints = new Map();
         const multiplexWaitEndpoints = new Map();
-        for (let [endpointUri, endpoint] of multiplexWebSocketItems) {
+        multiplexWebSocketItems.forEach((endpoint, endpointUri) => {
             multiplexWebSocketEndpoints.set(endpointUri, { endpointUri, items: endpoint.items });
-        }
-        for (let [endpointUri, endpoint] of multiplexWaitItems) {
+        });
+        multiplexWaitItems.forEach((endpoint, endpointUri) => {
             if (endpoint.items.length > 1 || !endpoint.items[0].linkUris['VALUE_WAIT']) {
                 multiplexWaitEndpoints.set(endpointUri, { endpointUri, items: endpoint.items });
             } else {
                 valueWaitItems.set(endpoint.items[0].linkUris['VALUE_WAIT'], endpoint.items[0]);
             }
-        }
-        for (let [endpointUri, endpoint] of valueWaitItems) {
+        });
+        valueWaitItems.forEach((endpoint, endpointUri) => {
             valueWaitEndpoints.set(endpointUri, { endpointUri, item: endpoint });
-        }
+        });
 
         this._adjustEndpoints(
             'Value Wait',
@@ -73,15 +72,15 @@ class ValueEngineUnit extends EngineUnit {
 
     }
 
-    start(resourceHandler) {
-        const resource = new ValueResource(resourceHandler);
+    createResourcePart(resourceHandler) {
+        const resource = new ValueResourcePart(resourceHandler);
 
         let request = this.createLongPoll();
         request.on('finished', (code, result, headers) => {
 
             if (code >= 200 && code < 400) {
                 // 304 if not changed, don't trigger value
-                this.updateResource(resource, headers, code < 300 ? result : null);
+                this.updateResourcePart(resource, headers, code < 300 ? result : null);
 
                 if (!resource.etag) {
                     console.info('no etag');
@@ -110,28 +109,28 @@ class ValueEngineUnit extends EngineUnit {
         return ['value', 'removed'];
     }
 
-    updateResource(resource, headers, result) {
+    updateResourcePart(resourcePart, headers, result) {
 
-        const parsedHeaders = ValueEngineUnit.parseHeaders(headers, resource.resourceHandler.uri);
+        const parsedHeaders = ValueEngineUnit.parseHeaders(headers, resourcePart.resourceHandler.uri);
         if (parsedHeaders.etag) {
-            resource.etag = parsedHeaders.etag;
+            resourcePart.etag = parsedHeaders.etag;
         }
         if (parsedHeaders.valueWaitUri) {
-            resource.linkUris['VALUE_WAIT'] = parsedHeaders.valueWaitUri;
+            resourcePart.linkUris['VALUE_WAIT'] = parsedHeaders.valueWaitUri;
         }
         if (parsedHeaders.multiplexWaitUri) {
-            resource.linkUris['MULTIPLEX_WAIT'] = parsedHeaders.multiplexWaitUri;
+            resourcePart.linkUris['MULTIPLEX_WAIT'] = parsedHeaders.multiplexWaitUri;
         }
         if (parsedHeaders.multiplexWsUri) {
-            resource.linkUris['MULTIPLEX_WS'] = parsedHeaders.multiplexWsUri;
+            resourcePart.linkUris['MULTIPLEX_WS'] = parsedHeaders.multiplexWsUri;
         }
 
-        super.updateResource(resource, headers, result);
+        super.updateResourcePart(resourcePart, headers, result);
     }
 
-    triggerEvents(resource, result) {
+    triggerEvents(part, result) {
         if (result != undefined) {
-            resource.resourceHandler.trigger('value', resource.resourceHandler, result);
+            part.resourceHandler.trigger('value', part.resourceHandler, result);
         }
     }
 

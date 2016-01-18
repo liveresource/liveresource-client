@@ -1,5 +1,3 @@
-import { firstOrDefault } from 'utils';
-
 class ResourceHandler {
     constructor(engine, uri) {
         this._engine = engine;
@@ -12,6 +10,9 @@ class ResourceHandler {
         // that are pointed to by this resource handler
         this._liveResources = [];
 
+        // TODO: "once only" events need to go away.
+        // 'ready' is the only one using this right now, and
+        // it's not the right way.
         this._onceOnlyEventMap = new WeakMap();
         this._onceOnlyEvents = new Map();
     }
@@ -26,11 +27,9 @@ class ResourceHandler {
     }
 
     trigger(event, target, ...args) {
-        const count = this._liveResources.length;
-        for (var i = 0; i < count; i++) {
-            var liveResource = this._liveResources[i];
+        this._liveResources.forEach(liveResource => {
             liveResource._events.trigger(event, target, ...args);
-        }
+        });
     }
 
     triggerOnceOnlyEvent(event, target, ...args) {
@@ -41,25 +40,22 @@ class ResourceHandler {
     checkOnceOnlyEvents() {
         console.log("Checking once only events...");
 
-        for (var event of this._onceOnlyEvents.keys()) {
-            const {target, args} = this._onceOnlyEvents.get(event);
-
-            for (var liveResource of this._liveResources) {
+        this._onceOnlyEvents.forEach(({target, args}, event) => {
+            this._liveResources.forEach(liveResource => {
                 const processedEvents = this._onceOnlyEventMap.get(liveResource);
                 if (processedEvents.indexOf(event) < 0) {
                     processedEvents.push(event);
                     liveResource._events.trigger(event, target, ...args);
                 }
-            }
-
-        }
+            });
+        });
     }
 
     addEvent(type) {
         const engineUnit = this._engine.findEngineUnitForEvent(type);
         const interestType = engineUnit != null ? engineUnit.interestType : null;
         if (interestType != null) {
-            this.getOrAddResourcePart(interestType, type => engineUnit.start(this));
+            this.getOrAddResourcePart(interestType, type => engineUnit.createResourcePart(this));
         }
 
         this.checkOnceOnlyEvents();
@@ -67,7 +63,7 @@ class ResourceHandler {
 
     getOrAddResourcePart(interestType, createFunc) {
         if (interestType != null) {
-            var resourcePart = firstOrDefault(this._resourceParts, part => part.interestType == interestType);
+            var resourcePart = this._resourceParts.find(part => part.interestType == interestType);
             if (resourcePart == null && createFunc != null) {
                 resourcePart = { interestType, part: createFunc(interestType) };
                 this._resourceParts.push(resourcePart);

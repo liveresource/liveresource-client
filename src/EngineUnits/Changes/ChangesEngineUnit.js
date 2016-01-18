@@ -2,7 +2,7 @@ import { toAbsoluteUri } from 'utils';
 import { parseLinkHeader } from 'utils.parseLinkHeader';
 
 import EngineUnit from 'Framework/EngineUnit';
-import ChangesResource from 'EngineUnits/Changes/ChangesResourcePart';
+import ChangesResourcePart from 'EngineUnits/Changes/ChangesResourcePart';
 import ChangesWaitConnection from 'EngineUnits/Changes/ChangesWaitConnection';
 
 class ChangesEngineUnit extends EngineUnit {
@@ -12,19 +12,19 @@ class ChangesEngineUnit extends EngineUnit {
         this._changesWaitConnections = new Map();
     }
 
-    updateWithParts(parts) {
+    updateEndpointsToResourceParts(parts) {
 
         var changesWaitItems = new Map();
-        for (let res of parts) {
-            if (res.linkUris['CHANGES_WAIT']) {
-                changesWaitItems.set(res.linkUris['CHANGES_WAIT'], res);
+        parts.forEach(part => {
+            if (part.linkUris['CHANGES_WAIT']) {
+                changesWaitItems.set(part.linkUris['CHANGES_WAIT'], part);
             }
-        }
+        });
 
         var changesWaitEndpoints = new Map();
-        for (let [endpointUri, endpoint] of changesWaitItems) {
+        changesWaitItems.forEach((endpoint, endpointUri) => {
             changesWaitEndpoints.set(endpointUri, { endpointUri, item: endpoint });
-        }
+        });
 
         this._adjustEndpoints(
             'Changes Wait',
@@ -35,14 +35,14 @@ class ChangesEngineUnit extends EngineUnit {
 
     }
 
-    start(resourceHandler) {
-        var resource = new ChangesResource(resourceHandler);
+    createResourcePart(resourceHandler) {
+        var resource = new ChangesResourcePart(resourceHandler);
 
         var request = this.createLongPoll();
         request.on('finished', (code, result, headers) => {
 
             if (code >= 200 && code < 300) {
-                this.updateResource(resource, headers, result);
+                this.updateResourcePart(resource, headers, result);
                 if (!resource.linkUris['CHANGES_WAIT']) {
                     console.info('no changes-wait link');
                 }
@@ -65,46 +65,48 @@ class ChangesEngineUnit extends EngineUnit {
         return ['child-added', 'child-removed'];
     }
 
-    updateResource(resource, headers, result) {
+    updateResourcePart(resourcePart, headers, result) {
 
-        var parsedHeaders = ChangesEngineUnit.parseHeaders(headers, resource.resourceHandler.uri);
+        var parsedHeaders = ChangesEngineUnit.parseHeaders(headers, resourcePart.resourceHandler.uri);
         if (parsedHeaders.changesWaitUri) {
             // -- HACK: Try to reuse Pollymer requests for this, for now.
-            var connection = this._changesWaitConnections.get(resource.linkUris['CHANGES_WAIT']);
+            var connection = this._changesWaitConnections.get(resourcePart.linkUris['CHANGES_WAIT']);
             if (connection) {
-                this._changesWaitConnections.delete(resource.linkUris['CHANGES_WAIT']);
+                this._changesWaitConnections.delete(resourcePart.linkUris['CHANGES_WAIT']);
             }
             // -- END HACK
 
-            resource.linkUris['CHANGES_WAIT'] = parsedHeaders.changesWaitUri;
+            resourcePart.linkUris['CHANGES_WAIT'] = parsedHeaders.changesWaitUri;
 
             // -- HACK
             if (connection) {
-                this._changesWaitConnections.set(resource.linkUris['CHANGES_WAIT'], connection);
-                connection.uri = resource.linkUris['CHANGES_WAIT'];
+                this._changesWaitConnections.set(resourcePart.linkUris['CHANGES_WAIT'], connection);
+                connection.uri = resourcePart.linkUris['CHANGES_WAIT'];
             }
             // -- END HACK
         }
 
-        super.updateResource(resource, headers, result);
+        super.updateResourcePart(resourcePart, headers, result);
     }
 
-    triggerEvents(resource, result) {
+    triggerEvents(part, result) {
 
         // TODO: This timing of emitting 'ready' is incorrect.
         // It should be done separately, because it means the listening connection
         // is established.
-        if (!resource.started) {
-            resource.started = true;
-            resource.resourceHandler.triggerOnceOnlyEvent('ready', resource.resourceHandler);
+        if (!part.started) {
+            part.started = true;
+            part.resourceHandler.triggerOnceOnlyEvent('ready', part.resourceHandler);
         }
 
-        for (var n = 0; n < result.length; ++n) {
-            if (result[n].deleted) {
-                resource.resourceHandler.trigger('child-deleted', resource.resourceHandler, result[n]);
-            } else {
-                resource.resourceHandler.trigger('child-added', resource.resourceHandler, result[n]);
-            }
+        if (result != null && result != "") {
+            result.forEach(resultItem => {
+                if (resultItem.deleted) {
+                    part.resourceHandler.trigger('child-deleted', part.resourceHandler, resultItem);
+                } else {
+                    part.resourceHandler.trigger('child-added', part.resourceHandler, resultItem);
+                }
+            });
         }
     }
 
