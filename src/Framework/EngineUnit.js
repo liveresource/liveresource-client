@@ -38,10 +38,10 @@ class EngineUnit {
     }
 
     updateResourcePart(resourcePart, headers, result) {
-        this.triggerEvents(resourcePart, result);
+        this.triggerEvents(resourcePart, headers, result);
     }
 
-    triggerEvents(resourcePart, result) {
+    triggerEvents(resourcePart, headers, result) {
     }
 
     static parseHeaders(headers, baseUri) {
@@ -142,7 +142,7 @@ class EngineUnit {
         }
     }
 
-    defaultParser(data) {
+    defaultParser(headers, data) {
         // return null for unknown data type.
         return null;
     }

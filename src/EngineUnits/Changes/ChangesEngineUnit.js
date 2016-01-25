@@ -76,7 +76,7 @@ class ChangesEngineUnit extends EngineUnit {
         super.updateResourcePart(resourcePart, headers, result);
     }
 
-    triggerEvents(part, result) {
+    triggerEvents(part, headers, result) {
 
         // TODO: This timing of emitting 'ready' is incorrect.
         // It should be done separately, because it means the listening connection
@@ -92,7 +92,7 @@ class ChangesEngineUnit extends EngineUnit {
                 var itemIds = getOrCreateEntry(this._liveResourceItemIds, liveResource, () => []);
 
                 // TODO: ContentType
-                const parsed = liveResource.parse(this.interestType, result);
+                const parsed = liveResource.parse(this.interestType, headers, result);
                 parsed.forEach(parsedItem => {
                     if (parsedItem.deleted) {
                         liveResource.trigger('child-deleted', liveResource, parsedItem.item);
@@ -139,7 +139,7 @@ class ChangesEngineUnit extends EngineUnit {
         return result;
     }
 
-    defaultParser(data) {
+    defaultParser(headers, data) {
         const parsed = JSON.parse(data);
         const out = [];
         if (Array.isArray(parsed)) {

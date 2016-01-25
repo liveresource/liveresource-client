@@ -29,8 +29,8 @@ class LiveResource {
         this._resourceHandler.addLiveResource(this);
     }
 
-    parse(interestType, data) {
-        return this._parser ? this._parser(interestType, data) : this._engine.defaultParser(interestType, data);
+    parse(interestType, headers, data) {
+        return this._parser ? this._parser(interestType, headers, data) : this._engine.defaultParser(interestType, headers, data);
     }
 
     on(type, handler) {

@@ -124,11 +124,11 @@ class ValueEngineUnit extends EngineUnit {
         super.updateResourcePart(resourcePart, headers, result);
     }
 
-    triggerEvents(part, result) {
+    triggerEvents(part, headers, result) {
         if (result) {
             part.resourceHandler.forEachLiveResource(liveResource => {
                 // TODO: ContentType
-                var parsed = liveResource.parse(this.interestType, result);
+                var parsed = liveResource.parse(this.interestType, headers, result);
                 liveResource.trigger('value', liveResource, parsed);
             });
         }
@@ -185,7 +185,7 @@ class ValueEngineUnit extends EngineUnit {
         return result;
     }
 
-    defaultParser(data) {
+    defaultParser(headers, data) {
         return JSON.parse(data);
     }
 }

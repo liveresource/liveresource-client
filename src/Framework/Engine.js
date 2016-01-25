@@ -68,9 +68,9 @@ class Engine {
         return this._engineUnits.find(engineUnit => engineUnit.interestType == interestType);
     }
 
-    defaultParser(interestType, data) {
+    defaultParser(interestType, headers, data) {
         const engineUnit = this.findEngineUnitForInterestType(interestType);
-        return engineUnit != null ? engineUnit.defaultParser(data) : null;
+        return engineUnit != null ? engineUnit.defaultParser(headers, data) : null;
     }
 }
 
