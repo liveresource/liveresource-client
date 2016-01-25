@@ -184,6 +184,10 @@ class ValueEngineUnit extends EngineUnit {
 
         return result;
     }
+
+    defaultParser(data) {
+        return JSON.parse(data);
+    }
 }
 
 export default ValueEngineUnit;

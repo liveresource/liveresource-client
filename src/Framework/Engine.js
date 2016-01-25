@@ -63,6 +63,15 @@ class Engine {
     findEngineUnitForEvent(eventName) {
         return this._engineUnits.find(engineUnit => engineUnit.events.indexOf(eventName) >= 0);
     }
+
+    findEngineUnitForInterestType(interestType) {
+        return this._engineUnits.find(engineUnit => engineUnit.interestType == interestType);
+    }
+
+    defaultParser(interestType, data) {
+        const engineUnit = this.findEngineUnitForInterestType(interestType);
+        return engineUnit != null ? engineUnit.defaultParser(data) : null;
+    }
 }
 
 export default Engine;

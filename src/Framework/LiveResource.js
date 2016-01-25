@@ -7,6 +7,7 @@ import CollectionEntry from 'Framework/CollectionEntry';
 class LiveResource {
     constructor(staticClass, engine, uri, options) {
         this._events = new Events();
+        this._engine = engine;
 
         if (typeof uri == "object") {
             options = uri;
@@ -16,7 +17,7 @@ class LiveResource {
         options = options || {};
 
         const resourceUri = uri || options.uri;
-        this._parser = options.parser || staticClass.defaultParser;
+        this._parser = options.parser;
 
         // staticClass is a reference to the "class" used in global scope, e.g., Liveresource.options
         // This is a hacky way of setting options on the engine, may want to revisit
@@ -28,8 +29,8 @@ class LiveResource {
         this._resourceHandler.addLiveResource(this);
     }
 
-    parse(contentType, data) {
-        return this._parser(contentType, data);
+    parse(interestType, data) {
+        return this._parser ? this._parser(interestType, data) : this._engine.defaultParser(interestType, data);
     }
 
     on(type, handler) {
@@ -53,7 +54,7 @@ class LiveResource {
         }
     }
 
-    static createLiveResourceConstructorWithEngine(engine, defaultParser) {
+    static createLiveResourceConstructorWithEngine(engine) {
         const LiveResourceClass = class {
             constructor(uri, options) {
                 return new LiveResource(this.constructor, engine, uri, options);
@@ -66,7 +67,6 @@ class LiveResource {
             maxLongPollDelayMsecs: 0
         };
         LiveResourceClass.CollectionEntry = CollectionEntry;
-        LiveResourceClass.defaultParser = defaultParser;
         return LiveResourceClass;
     }
 }

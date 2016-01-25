@@ -141,6 +141,11 @@ class EngineUnit {
 
         }
     }
+
+    defaultParser(data) {
+        // return null for unknown data type.
+        return null;
+    }
 }
 
 export default EngineUnit;

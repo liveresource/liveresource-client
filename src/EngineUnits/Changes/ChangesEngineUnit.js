@@ -4,6 +4,7 @@ import { parseLinkHeader } from 'utils.parseLinkHeader';
 import EngineUnit from 'Framework/EngineUnit';
 import ChangesResourcePart from 'EngineUnits/Changes/ChangesResourcePart';
 import ChangesWaitConnection from 'EngineUnits/Changes/ChangesWaitConnection';
+import CollectionEntry from 'Framework/CollectionEntry';
 
 class ChangesEngineUnit extends EngineUnit {
     constructor() {
@@ -136,6 +137,27 @@ class ChangesEngineUnit extends EngineUnit {
         }
 
         return result;
+    }
+
+    defaultParser(data) {
+        const parsed = JSON.parse(data);
+        const out = [];
+        if (Array.isArray(parsed)) {
+            const items = parsed;
+            for (let i = 0; i < items.length; ++i) {
+                const id = items[i].id;
+                const deleted = items[i].deleted;
+                delete items[i].deleted; // app should not see this
+                out.push(new CollectionEntry(id, deleted, items[i]));
+            }
+        } else {
+            const item = parsed;
+            const id = item.id;
+            const deleted = item.deleted;
+            delete item.deleted; // app should not see this
+            out.push(new CollectionEntry(id, deleted, item));
+        }
+        return out;
     }
 }
 
