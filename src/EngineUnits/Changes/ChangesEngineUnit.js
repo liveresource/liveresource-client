@@ -1,10 +1,10 @@
-import { toAbsoluteUri, getOrCreateEntry } from 'utils';
-import { parseLinkHeader } from 'utils.parseLinkHeader';
+import { toAbsoluteUri, getOrCreateEntry } from '../../utils';
+import { parseLinkHeader } from '../../utils.parseLinkHeader';
 
-import EngineUnit from 'Framework/EngineUnit';
-import ChangesResourcePart from 'EngineUnits/Changes/ChangesResourcePart';
-import ChangesWaitConnection from 'EngineUnits/Changes/ChangesWaitConnection';
-import CollectionEntry from 'Framework/CollectionEntry';
+import EngineUnit from '../../Framework/EngineUnit';
+import ChangesResourcePart from './ChangesResourcePart';
+import ChangesWaitConnection from './ChangesWaitConnection';
+import CollectionEntry from '../../Framework/CollectionEntry';
 
 class ChangesEngineUnit extends EngineUnit {
     constructor() {

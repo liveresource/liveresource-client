@@ -1,4 +1,4 @@
-import Connection from 'Framework/Connection';
+import Connection from '../../Framework/Connection';
 
 class ValueWaitConnection extends Connection {
     constructor(engineUnit, endpoint) {

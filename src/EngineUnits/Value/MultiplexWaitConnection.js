@@ -1,7 +1,6 @@
-import { toAbsoluteUri } from 'utils';
+import { toAbsoluteUri } from '../../utils';
 
-import Connection from 'Framework/Connection';
-import ValueResource from 'EngineUnits/Value/ValueResourcePart';
+import Connection from '../../Framework/Connection';
 
 class MultiplexWaitConnection extends Connection {
     constructor(engineUnit, endpoint) {
@@ -33,7 +32,7 @@ class MultiplexWaitConnection extends Connection {
     hasChanged(endpoint) {
         let removedOrChanged = false;
         if (endpoint.items.length != this.resItems.length) {
-            removedOrChanged = true
+            removedOrChanged = true;
         } else {
 
             // At this point we know the two arrays are the same length.

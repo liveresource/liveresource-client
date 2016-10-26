@@ -1,4 +1,4 @@
-import Connection from 'Framework/Connection';
+import Connection from '../../Framework/Connection';
 
 class ChangesWaitConnection extends Connection {
     constructor(engineUnit, endpoint) {

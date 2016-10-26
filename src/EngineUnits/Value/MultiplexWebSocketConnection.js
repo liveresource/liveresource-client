@@ -1,9 +1,8 @@
-import { toAbsoluteUri } from 'utils';
-import { mapWebSocketUrlToHttpUrl } from 'utils.mapWebSocketUrls';
-import WebSockHop from 'WebSockHop';
+import { toAbsoluteUri } from '../../utils';
+import { mapWebSocketUrlToHttpUrl } from '../../utils.mapWebSocketUrls';
+import WebSockHop from 'websockhop';
 
-import Connection from 'Framework/Connection';
-import ValueResource from 'EngineUnits/Value/ValueResourcePart';
+import Connection from '../../Framework/Connection';
 
 class MultiplexWebSocketConnection extends Connection {
     constructor(engineUnit, endpoint) {
@@ -62,7 +61,7 @@ class MultiplexWebSocketConnection extends Connection {
             if (result.type == 'unsubscribed') {
                 delete this.subscribedItems[uri];
             }
-        })
+        });
     }
 
     mapToHttpUri(uri) {

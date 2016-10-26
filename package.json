@@ -2,15 +2,10 @@
   "name": "liveresource",
   "description": "LiveResource library",
   "homepage": "https://github.com/fanout/liveresource",
-  "version": "0.2",
+  "version": "0.2.0",
   "license": "MIT",
   "author": "fanout",
   "main": "./src/main.js",
-  "scripts": {
-    "build": "gulp build",
-    "build-dist": "gulp",
-    "test": "node tests/*.js"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/fanout/liveresource.git"
@@ -25,25 +20,35 @@
   "browser": {
     "./src/utils.getWindowLocationHref.js": "./src/utils.getWindowLocationHrefBrowser.js"
   },
+  "scripts": {
+    "clean": "rimraf lib dist",
+    "build": "npm run build:commonjs && npm run build:umd && npm run build:umd:min",
+    "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --out-dir lib --presets es2015 --plugins transform-object-rest-spread,transform-async-to-generator,transform-runtime,transform-function-bind",
+    "build:umd": "mkdir -p dist && cross-env BABEL_ENV=browserify NODE_ENV=development browserify src/browser.js -s WebSockHop -o dist/websockhop.js -t [ babelify --presets [ es2015 ] --plugins [ transform-object-rest-spread transform-async-to-generator transform-runtime transform-function-bind transform-inline-environment-variables ] ]",
+    "build:umd:min": "mkdir -p dist && cross-env BABEL_ENV=browserify NODE_ENV=production browserify src/browser.js -s WebSockHop -o dist/websockhop.min.js -t [ babelify --presets [ es2015 ] --plugins [ transform-object-rest-spread transform-async-to-generator transform-runtime transform-function-bind transform-inline-environment-variables ] ] -p [ minifyify --no-map ]",
+    "check:src": "npm run lint",
+    "lint": "eslint src",
+    "prepublish": "npm run clean && npm run check:src && npm run build"
+  },
   "devDependencies": {
-    "aliasify": "^1.7.2",
-    "babel-core": "^6.2.4",
-    "babel-plugin-add-module-exports": "^0.1.2",
-    "babel-polyfill": "^6.3.14",
-    "babel-preset-es2015": "^6.2.4",
-    "babelify": "^7.2.0",
-    "browserify": "^12.0.1",
-    "gulp": "^3.9.0",
-    "gulp-header": "^1.5.0",
-    "gulp-rename": "^1.2.2",
-    "gulp-replace": "^0.5.4",
-    "gulp-sourcemaps": "^1.5.2",
-    "gulp-uglify": "^1.2.0",
-    "gulp-util": "^3.0.6",
-    "tape": "^4.0.1",
-    "uglify-js": "^2.4.24",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0",
-    "watchify": "^3.3.0"
+    "babel-cli": "^6.9.0",
+    "babel-eslint": "^6.0.4",
+    "babel-plugin-transform-async-to-generator": "^6.8.0",
+    "babel-plugin-transform-function-bind": "^6.8.0",
+    "babel-plugin-transform-inline-environment-variables": "^6.8.0",
+    "babel-plugin-transform-object-rest-spread": "^6.8.0",
+    "babel-plugin-transform-runtime": "^6.9.0",
+    "babel-preset-es2015": "^6.9.0",
+    "babelify": "^7.3.0",
+    "browserify": "^13.0.1",
+    "cross-env": "^1.0.7",
+    "eslint": "^2.10.2",
+    "minifyify": "^7.3.3",
+    "pollymer": "^1.2.0",
+    "rimraf": "^2.5.2",
+    "websockhop": "^2.2.0"
+  },
+  "dependencies": {
+    "babel-runtime": "^6.9.0"
   }
 }

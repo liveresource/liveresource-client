@@ -1,4 +1,4 @@
-import Pollymer from 'Pollymer';
+import Pollymer from 'pollymer';
 
 class EngineUnit {
     constructor() {

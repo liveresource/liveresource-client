@@ -1,8 +1,8 @@
-import { toAbsoluteUri } from 'utils';
-import { getWindowLocationHref } from 'utils.getWindowLocationHref';
+import { toAbsoluteUri } from '../utils';
+import { getWindowLocationHref } from '../utils.getWindowLocationHref';
 
-import Events from 'Framework/Events';
-import CollectionEntry from 'Framework/CollectionEntry';
+import Events from './Events';
+import CollectionEntry from './CollectionEntry';
 
 class LiveResource {
     constructor(staticClass, engine, uri, options) {
@@ -39,7 +39,7 @@ class LiveResource {
         return () => {
             event();
             // Also remove from resource handler
-        }
+        };
     }
 
     trigger(event, target, ...args) {

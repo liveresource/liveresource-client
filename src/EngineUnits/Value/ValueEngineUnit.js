@@ -1,12 +1,12 @@
-import { getOrCreateEntry, toAbsoluteUri } from 'utils';
-import { mapHttpUrlToWebSocketUrl } from 'utils.mapWebSocketUrls';
-import { parseLinkHeader } from 'utils.parseLinkHeader';
+import { getOrCreateEntry, toAbsoluteUri } from '../../utils';
+import { mapHttpUrlToWebSocketUrl } from '../../utils.mapWebSocketUrls';
+import { parseLinkHeader } from '../../utils.parseLinkHeader';
 
-import EngineUnit from 'Framework/EngineUnit';
-import ValueResourcePart from 'EngineUnits/Value/ValueResourcePart';
-import ValueWaitConnection from 'EngineUnits/Value/ValueWaitConnection';
-import MultiplexWebSocketConnection from 'EngineUnits/Value/MultiplexWebSocketConnection';
-import MultiplexWaitConnection from 'EngineUnits/Value/MultiplexWaitConnection';
+import EngineUnit from '../../Framework/EngineUnit';
+import ValueResourcePart from './ValueResourcePart';
+import ValueWaitConnection from './ValueWaitConnection';
+import MultiplexWebSocketConnection from './MultiplexWebSocketConnection';
+import MultiplexWaitConnection from './MultiplexWaitConnection';
 
 class ValueEngineUnit extends EngineUnit {
     constructor() {

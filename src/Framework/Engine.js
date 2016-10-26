@@ -1,7 +1,6 @@
-import { getOrCreateEntry } from 'utils';
-import mapWebSocketUrls from 'utils.mapWebSocketUrls';
+import { getOrCreateEntry } from '../utils';
 
-import ResourceHandler from 'Framework/ResourceHandler';
+import ResourceHandler from './ResourceHandler';
 
 class Engine {
     constructor() {
