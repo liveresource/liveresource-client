@@ -61,11 +61,11 @@ var roomGetMessagesBefore = function (room, pos, limit) {
 
 app.get('/', express.static(__dirname));
 app.get('/liveresource.js', function(req, res) {
-    var filePath = path.resolve(__dirname + '/../../build/output/liveresource-latest.js');
+    var filePath = path.resolve(__dirname + '/../../dist/liveresource.js');
     res.sendFile(filePath);
 });
-app.get('/liveresource-latest.js.map', function(req, res) {
-    var filePath = path.resolve(__dirname + '/../../build/output/liveresource-latest.js.map');
+app.get('/liveresource.js.map', function(req, res) {
+    var filePath = path.resolve(__dirname + '/../../dist/liveresource.js.map');
     res.sendFile(filePath);
 });
 app.get(/^\/.*\.js(.map)?$/, express.static(__dirname + '/../common/client'));
