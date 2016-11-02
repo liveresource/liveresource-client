@@ -1,10 +1,11 @@
-import { toAbsoluteUri, getOrCreateEntry } from 'utils';
-import { parseLinkHeader } from 'utils.parseLinkHeader';
+import { toAbsoluteUri, getOrCreateEntry } from '../../utils';
+import { parseLinkHeader } from '../../utils.parseLinkHeader';
+import * as Logger from "../../Logger";
 
-import EngineUnit from 'Framework/EngineUnit';
-import ChangesResourcePart from 'EngineUnits/Changes/ChangesResourcePart';
-import ChangesWaitConnection from 'EngineUnits/Changes/ChangesWaitConnection';
-import CollectionEntry from 'Framework/CollectionEntry';
+import EngineUnit from '../../Framework/EngineUnit';
+import ChangesResourcePart from './ChangesResourcePart';
+import ChangesWaitConnection from './ChangesWaitConnection';
+import CollectionEntry from '../../Framework/CollectionEntry';
 
 class ChangesEngineUnit extends EngineUnit {
     constructor() {
@@ -46,7 +47,7 @@ class ChangesEngineUnit extends EngineUnit {
             if (code >= 200 && code < 300) {
                 this.updateResourcePart(resource, headers, result);
                 if (!resource.linkUris['CHANGES_WAIT']) {
-                    console.info('no changes-wait link');
+                    Logger.info('no changes-wait link');
                 }
                 this.updateEngine();
                 request = null;
@@ -132,7 +133,7 @@ class ChangesEngineUnit extends EngineUnit {
         var result = {};
 
         if (changesWaitUri) {
-            console.info('changes-wait: [' + changesWaitUri + ']');
+            Logger.info('changes-wait: [' + changesWaitUri + ']');
             result.changesWaitUri = changesWaitUri;
         }
 

@@ -1,3 +1,5 @@
+import * as Logger from "./Logger";
+
 // TODO: REFACTOR THIS
 // ** PARSE LINK HEADER **
 // returns object with structure:
@@ -119,7 +121,7 @@ export const parseLinkHeader = (header) => {
         if (rel) {
             var rels = rel.split(' ');
             for (var i = 0; i < rels.length; ++i) {
-                console.info('link: url=[' + url + '], rel=[' + rels[i] + ']');
+                Logger.debug('link: url=[' + url + '], rel=[' + rels[i] + ']');
                 var link = {};
                 link.rel = rels[i];
                 link.href = url;

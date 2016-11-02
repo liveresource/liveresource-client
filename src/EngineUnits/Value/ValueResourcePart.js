@@ -1,4 +1,4 @@
-import ResourcePart from 'Framework/ResourcePart';
+import ResourcePart from '../../Framework/ResourcePart';
 
 class ValueResourcePart extends ResourcePart {
     constructor(resourceHandler) {

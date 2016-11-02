@@ -1,4 +1,5 @@
-import Connection from 'Framework/Connection';
+import Connection from '../../Framework/Connection';
+import * as Logger from "../../Logger";
 
 class ValueWaitConnection extends Connection {
     constructor(engineUnit, endpoint) {
@@ -31,7 +32,7 @@ class ValueWaitConnection extends Connection {
     refresh(endpoint) {
         if (!this.isActive) {
             const requestUri = this.uri;
-            console.info(`Value Wait Request URI: ${requestUri}`);
+            Logger.info(`Value Wait Request URI: ${requestUri}`);
             this._engineUnit.setLongPollOptions(this.request);
             this.request.start('GET', requestUri, {
                 'If-None-Match': this.res.etag,

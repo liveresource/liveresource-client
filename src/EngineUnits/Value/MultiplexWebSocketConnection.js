@@ -1,9 +1,10 @@
-import { toAbsoluteUri } from 'utils';
-import { mapWebSocketUrlToHttpUrl } from 'utils.mapWebSocketUrls';
-import WebSockHop from 'WebSockHop';
+import { toAbsoluteUri } from '../../utils';
+import { mapWebSocketUrlToHttpUrl } from '../../utils.mapWebSocketUrls';
+import * as Logger from "../../Logger";
 
-import Connection from 'Framework/Connection';
-import ValueResource from 'EngineUnits/Value/ValueResourcePart';
+import WebSockHop from 'websockhop';
+
+import Connection from '../../Framework/Connection';
 
 class MultiplexWebSocketConnection extends Connection {
     constructor(engineUnit, endpoint) {
@@ -62,7 +63,7 @@ class MultiplexWebSocketConnection extends Connection {
             if (result.type == 'unsubscribed') {
                 delete this.subscribedItems[uri];
             }
-        })
+        });
     }
 
     mapToHttpUri(uri) {
@@ -73,7 +74,7 @@ class MultiplexWebSocketConnection extends Connection {
     checkSubscriptions(items) {
 
         const endpointUri = this.uri;
-        console.info(`Multiplex WebSocket Request URI: ${endpointUri}`);
+        Logger.info(`Multiplex WebSocket Request URI: ${endpointUri}`);
 
         const subscribedItems = Object.assign({}, this.subscribedItems);
 

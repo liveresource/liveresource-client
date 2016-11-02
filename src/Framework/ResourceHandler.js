@@ -1,3 +1,5 @@
+import * as Logger from "../Logger";
+
 class ResourceHandler {
     constructor(engine, uri) {
         this._engine = engine;
@@ -36,7 +38,7 @@ class ResourceHandler {
     }
 
     checkOnceOnlyEvents() {
-        console.log("Checking once only events...");
+        Logger.info("Checking once only events...");
 
         this._onceOnlyEvents.forEach(({target, args}, event) => {
             this._liveResources.forEach(liveResource => {

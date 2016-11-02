@@ -1,7 +1,7 @@
-import { toAbsoluteUri } from 'utils';
+import { toAbsoluteUri } from '../../utils';
+import * as Logger from "../../Logger";
 
-import Connection from 'Framework/Connection';
-import ValueResource from 'EngineUnits/Value/ValueResourcePart';
+import Connection from '../../Framework/Connection';
 
 class MultiplexWaitConnection extends Connection {
     constructor(engineUnit, endpoint) {
@@ -19,7 +19,7 @@ class MultiplexWaitConnection extends Connection {
 
                 Object.keys(result).forEach(uri => {
                     const item = result[uri];
-                    console.info(`got data for uri: ${uri}`);
+                    Logger.info(`got data for uri: ${uri}`);
                     var absoluteUri = toAbsoluteUri(this.uri, uri);
                     engineUnit.updateResources(absoluteUri, item.headers, item.body);
                 });
@@ -33,7 +33,7 @@ class MultiplexWaitConnection extends Connection {
     hasChanged(endpoint) {
         let removedOrChanged = false;
         if (endpoint.items.length != this.resItems.length) {
-            removedOrChanged = true
+            removedOrChanged = true;
         } else {
 
             // At this point we know the two arrays are the same length.
@@ -74,7 +74,7 @@ class MultiplexWaitConnection extends Connection {
             });
 
             const requestUri = `${this.uri}?${urlSegments.join('&')}`;
-            console.info(`Multiplex Wait Request URI: ${requestUri}`);
+            Logger.info(`Multiplex Wait Request URI: ${requestUri}`);
             this._engineUnit.setLongPollOptions(this.request);
             this.request.start('GET', requestUri, {
                 'Wait': 55

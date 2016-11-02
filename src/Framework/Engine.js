@@ -1,7 +1,7 @@
-import { getOrCreateEntry } from 'utils';
-import mapWebSocketUrls from 'utils.mapWebSocketUrls';
+import { getOrCreateEntry } from '../utils';
+import * as Logger from "../Logger";
 
-import ResourceHandler from 'Framework/ResourceHandler';
+import ResourceHandler from './ResourceHandler';
 
 class Engine {
     constructor() {
@@ -47,7 +47,7 @@ class Engine {
             this._updatePending = false;
 
             // restart our long poll
-            console.info('engine: setup long polls');
+            Logger.info('engine: setup long polls');
 
             this._engineUnits.forEach(engineUnit => {
                 engineUnit.update();

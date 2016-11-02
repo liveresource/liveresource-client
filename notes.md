@@ -9,15 +9,12 @@ loaded into a browser, using Browserify.
 Building LiveResource
 ---------------------
 
-LiveResource is built using Gulp.
+LiveResource is built using Browserify.
 
 It can be built using commands registered with `package.json`. These scripts can be invoked using
 `npm run`.
 
-To build the library, type `npm run build`. Output files will be genertaed in the `build/output` directory.
-
-To build the library for preparing for distribution, type `npm run build-dist`. Output files will
-be generated in the `dist` directory.
+To build the library, type `npm run build`. Output files will be genertaed in the `dist` directory.
 
 Architecture
 ------------

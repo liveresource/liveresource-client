@@ -1,4 +1,4 @@
-import ResourcePart from 'Framework/ResourcePart';
+import ResourcePart from '../../Framework/ResourcePart';
 
 class ChangesResourcePart extends ResourcePart {
     constructor(resourceHandler) {
