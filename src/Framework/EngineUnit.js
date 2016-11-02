@@ -1,3 +1,5 @@
+import * as Logger from "../Logger";
+
 import Pollymer from 'pollymer';
 
 class EngineUnit {
@@ -110,7 +112,7 @@ class EngineUnit {
 
         // ... and disable them.
         endpointsToDisable.forEach(endpointUri => {
-            console.info(`Remove '${label}' endpoint - '${endpointUri}'.`);
+            Logger.info(`Remove '${label}' endpoint - '${endpointUri}'.`);
             const connection = currentConnectionsMap.get(endpointUri);
             connection.abort();
             currentConnectionsMap.delete(endpointUri);
@@ -118,7 +120,7 @@ class EngineUnit {
 
         // Create new requests for endpoints that need them.
         newEndpoints.forEach((endpoint, endpointUri) => {
-            console.info(`Adding '${label}' endpoint - '${endpointUri}'.`);
+            Logger.info(`Adding '${label}' endpoint - '${endpointUri}'.`);
             currentConnectionsMap.set(endpointUri, createConnectionFunc(endpoint));
         });
 

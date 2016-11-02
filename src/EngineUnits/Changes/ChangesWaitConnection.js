@@ -1,3 +1,4 @@
+import * as Logger from "../../Logger";
 import Connection from '../../Framework/Connection';
 
 class ChangesWaitConnection extends Connection {
@@ -31,7 +32,7 @@ class ChangesWaitConnection extends Connection {
     refresh(endpoint) {
         if (!this.isActive) {
             const requestUri = this.uri;
-            console.info(`Changes Wait Request URI: ${requestUri}`);
+            Logger.info(`Changes Wait Request URI: ${requestUri}`);
             this._engineUnit.setLongPollOptions(this.request);
             this.request.start('GET', requestUri, {
                 'Wait': 55

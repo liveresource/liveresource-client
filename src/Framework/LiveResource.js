@@ -4,6 +4,8 @@ import { getWindowLocationHref } from '../utils.getWindowLocationHref';
 import Events from './Events';
 import CollectionEntry from './CollectionEntry';
 
+import { addLogger } from "../Logger";
+
 class LiveResource {
     constructor(staticClass, engine, uri, options) {
         this._events = new Events();
@@ -67,6 +69,16 @@ class LiveResource {
             maxLongPollDelayMsecs: 0
         };
         LiveResourceClass.CollectionEntry = CollectionEntry;
+
+        LiveResourceClass.logger = null;
+        if (process.env.NODE_ENV === 'development') {
+            LiveResourceClass.logger = (type, message) => {
+                console.log(`LiveResource: ${type} - ${message}`);
+            };
+        }
+
+        addLogger(LiveResourceClass);
+
         return LiveResourceClass;
     }
 }

@@ -1,6 +1,7 @@
 import { getOrCreateEntry, toAbsoluteUri } from '../../utils';
 import { mapHttpUrlToWebSocketUrl } from '../../utils.mapWebSocketUrls';
 import { parseLinkHeader } from '../../utils.parseLinkHeader';
+import * as Logger from "../../Logger";
 
 import EngineUnit from '../../Framework/EngineUnit';
 import ValueResourcePart from './ValueResourcePart';
@@ -83,7 +84,7 @@ class ValueEngineUnit extends EngineUnit {
                 this.updateResourcePart(resource, headers, code < 300 ? result : null);
 
                 if (!resource.etag) {
-                    console.info('no etag');
+                    Logger.info('no etag');
                 }
                 this.updateEngine();
                 request = null;
@@ -163,22 +164,22 @@ class ValueEngineUnit extends EngineUnit {
         const result = {};
 
         if (etag) {
-            console.info('etag: [' + etag + ']');
+            Logger.info('etag: [' + etag + ']');
             result.etag = etag;
         }
 
         if (valueWaitUri) {
-            console.info('value-wait: [' + valueWaitUri + ']');
+            Logger.info('value-wait: [' + valueWaitUri + ']');
             result.valueWaitUri = valueWaitUri;
         }
 
         if (multiplexWaitUri) {
-            console.info('multiplex-wait: [' + multiplexWaitUri + ']');
+            Logger.info('multiplex-wait: [' + multiplexWaitUri + ']');
             result.multiplexWaitUri = multiplexWaitUri;
         }
 
         if (multiplexWsUri) {
-            console.info('multiplex-ws: [' + multiplexWsUri + ']');
+            Logger.info('multiplex-ws: [' + multiplexWsUri + ']');
             result.multiplexWsUri = multiplexWsUri;
         }
 
