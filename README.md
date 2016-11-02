@@ -13,9 +13,7 @@ LiveResource is offered under the MIT license. See the COPYING file.
 Dependencies
 ------------
 
-  * json2.js
-  * Pollymer
-  * WebSockHop
+  * json2.js - on very old browsers that don't have built in support for JSON.
 
 Usage
 -----
