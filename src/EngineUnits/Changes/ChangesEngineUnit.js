@@ -65,7 +65,7 @@ class ChangesEngineUnit extends EngineUnit {
     }
 
     get events() {
-        return ['child-added', 'child-removed'];
+        return ['child-added', 'child-deleted'];
     }
 
     updateResourcePart(resourcePart, headers, result) {
