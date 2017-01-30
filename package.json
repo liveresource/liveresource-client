@@ -2,7 +2,7 @@
   "name": "liveresource",
   "description": "LiveResource library",
   "homepage": "https://github.com/fanout/liveresource",
-  "version": "0.2.0-beta.1",
+  "version": "0.2.0-beta.2",
   "license": "MIT",
   "author": "fanout",
   "main": "./lib/index.js",
@@ -44,11 +44,11 @@
     "cross-env": "^1.0.7",
     "eslint": "^2.10.2",
     "minifyify": "^7.3.3",
-    "pollymer": "^1.2.0",
-    "rimraf": "^2.5.2",
-    "websockhop": "^2.2.0"
+    "rimraf": "^2.5.2"
   },
   "dependencies": {
-    "babel-runtime": "^6.9.0"
+    "babel-runtime": "^6.9.0",
+    "pollymer": "^1.2.0",
+    "websockhop": "^2.2.0"
   }
 }
